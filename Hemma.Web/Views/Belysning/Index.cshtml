@@ -1,0 +1,76 @@
+﻿@model IEnumerable<Hemma.Web.Controllers.BelysningController.Setting>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@{
+    ViewBag.Title = "Belysning";
+}
+
+
+<h1>
+    Belysning
+</h1>
+
+@foreach (var settingGroup in Model.GroupBy(item => item.Room))
+{
+    <h2>@settingGroup.Key</h2>
+    foreach (var setting in settingGroup)
+    {
+        <div class="light" data-room="@setting.Room" data-lampa="@setting.Lampa">
+            <h3>@setting.Lampa</h3>
+            <div class="btn-group">
+                <button class="changeLighting btn btn-default button-on" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="on">På</button>
+                <button class="changeLighting btn btn-default button-off" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="off">Av</button>
+            </div>
+        </div>
+    }
+}
+<script>
+    function setLightButtonStatus(data) {
+        $(".changeLighting[data-room='" + data.room + "'][data-lampa='" + data.lampa + "']").removeClass('active');;
+        $(".changeLighting[data-room='" + data.room + "'][data-lampa='" + data.lampa + "'][data-state='" + data.state + "']").addClass('active');
+
+    }
+    $(function () {
+        $.get("@Url.Action("UpdateLightStatus")");
+
+        $(".light").each(function (index, value) {
+            var roomValue = $(value).attr('data-room');
+            var lampaValue = $(value).attr('data-lampa');
+
+            $.post('@Url.Action("GetLightStatus")', {
+                room: roomValue,
+                lampa: lampaValue
+            }, function (data, textStatus) {
+                if (textStatus == "success") {
+                    setLightButtonStatus(data);
+                }
+            }, "json");
+
+        });
+
+        $(".changeLighting").on('click', function (e) {
+            var roomValue = $(e.target).attr('data-room');
+            var lampaValue = $(e.target).attr('data-lampa');
+            var stateValue = $(e.target).attr('data-state');
+
+             $.post('@Url.Action("Ändra")', {
+                room: roomValue,
+                lampa: lampaValue,
+                state: stateValue
+            }, function (data, textStatus) {
+                if (textStatus == "success") {
+                    setLightButtonStatus({
+                        room: roomValue,
+                        lampa: lampaValue,
+                        state: stateValue
+                    });
+                }
+            }, "json");
+
+
+        });
+    });
+</script>
