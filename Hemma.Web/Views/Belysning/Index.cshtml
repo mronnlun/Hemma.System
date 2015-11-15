@@ -8,24 +8,30 @@
     ViewBag.Title = "Belysning";
 }
 
-
-<h1>
-    Belysning
-</h1>
-
+<div class="row">
+    <div class="col-md-12">
+        <h1>
+            Belysning
+        </h1>
+    </div>
+</div>
 @foreach (var settingGroup in Model.GroupBy(item => item.Room))
 {
-    <h2>@settingGroup.Key</h2>
-    foreach (var setting in settingGroup)
-    {
-        <div class="light" data-room="@setting.Room" data-lampa="@setting.Lampa">
-            <h3>@setting.Lampa</h3>
-            <div class="btn-group">
-                <button class="changeLighting btn btn-default button-on" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="on">På</button>
-                <button class="changeLighting btn btn-default button-off" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="off">Av</button>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>@settingGroup.Key</h2>
+            @foreach (var setting in settingGroup)
+            {
+            <div class="light" data-room="@setting.Room" data-lampa="@setting.Lampa">
+                <h3>@setting.Lampa</h3>
+                <div class="btn-group">
+                    <button class="changeLighting btn btn-default button-on" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="on">På</button>
+                    <button class="changeLighting btn btn-default button-off" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="off">Av</button>
+                </div>
             </div>
+            }
         </div>
-    }
+    </div>
 }
 <script>
     function setLightButtonStatus(data) {
@@ -56,7 +62,7 @@
             var lampaValue = $(e.target).attr('data-lampa');
             var stateValue = $(e.target).attr('data-state');
 
-             $.post('@Url.Action("Ändra")', {
+            $.post('@Url.Action("Ändra")', {
                 room: roomValue,
                 lampa: lampaValue,
                 state: stateValue

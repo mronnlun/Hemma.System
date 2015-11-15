@@ -182,8 +182,8 @@ namespace Hemma.Web.Models
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 return false;
 
-            if (username.Equals("xxx", StringComparison.CurrentCultureIgnoreCase) &&
-                password.Equals("yyy", StringComparison.CurrentCultureIgnoreCase))
+            if (username.Equals("ronnlund", StringComparison.CurrentCultureIgnoreCase) &&
+                password.Equals("Yttergarden25", StringComparison.CurrentCultureIgnoreCase))
                 return true;
 
             return false;
