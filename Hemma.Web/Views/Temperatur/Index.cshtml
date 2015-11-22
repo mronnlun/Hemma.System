@@ -62,13 +62,17 @@
         return result;
     }
 
-    var starttimeoffset = 1440;
-    var timeParam = getUrlVars()["timestart"];
-    if (timeParam > 0) {
-        starttimeoffset = timeParam;
+    function startUp() {
+        var starttimeoffset = 1440;
+        var timeParam = getUrlVars()["timestart"];
+        if (timeParam > 0) {
+            starttimeoffset = timeParam;
+        }
+
+        setData(starttimeoffset);
     }
 
-    setData(starttimeoffset);
+    startUp();
 
     function setData(starttimeoffset) {
 
@@ -83,6 +87,7 @@
         })
 
         setChart(starttimeoffset);
+
         return false;
     }
 
