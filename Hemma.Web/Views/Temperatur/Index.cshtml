@@ -6,39 +6,39 @@
 
 <div class="row">
     <div class="col-md-12">
-        <h3>Temperatur</h3>
-        <h4>Just nu: <mark id="current-temp"></mark> &deg; C</h4>
+        <h3>Temperatur: <span class="label label-info" id="current-temp"></span> &deg; C</h3>
+        <h3>Fuktighet: <span class="label label-info" id="current-hum"></span> %</h3>
     </div>
 </div>
+
 <div class="row">
-    <div class="col-md-12">
-        <iframe width="600" height="260" class="chart" id="temperature" style="border: 1px solid #cccccc;"
-                src=""></iframe>
+    <div id="chart-container">
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />
     </div>
 </div>
+
 <div class="row">
-    <div class="col-md-2 col-xs-2" style="margin-top:12px;">Tid: </div>
-    <div class="col-md-9 col-xs-9">
+    <div class="col-md-offset-2 col-xs-offset-1 col-md-10 col-xs-11">
         <div class="btn-group">
             <a class="settime btn btn-default settime-60" href="#" onclick="setData(60)">60 min</a>
             <a class="settime btn btn-default settime-1440" href="#" onclick="setData(1440)">24 h</a>
             <a class="settime btn btn-default settime-10080" href="#" onclick="setData(10080)">7 d</a>
+            <a class="settime btn btn-default settime-40320" href="#" onclick="setData(40320)">28 d</a>
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-md-12">
-        <h3>Fuktighet</h3>
-        <h4>Just nu: <mark id="current-hum"></mark> %</h4>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-12">
-        <iframe width="600" height="260" class="chart" id="humidity" style="border: 1px solid #cccccc;"
-                src=""></iframe>
-    </div>
-</div>
+<script src="http://code.highcharts.com/4/highcharts.js"></script>
+<script src="http://code.highcharts.com/4/modules/exporting.js"></script>
+
 <script type="text/javascript">
+    var myOffset = new Date().getTimezoneOffset();
+
+    // converts date format from JSON
+    function getChartDate(d) {
+        // offset in minutes is converted to milliseconds and subtracted so that chart's x-axis is correct
+        return Date.parse(d) - (myOffset * 60000);
+    }
+
     function getUrlVars() {
         var vars = [], hash;
         var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
@@ -62,77 +62,176 @@
         return result;
     }
 
-    $(window).resize(function (event) {
-        setData(0);
-    });
-
-    var timedifference = 1440;
+    var starttimeoffset = 1440;
     var timeParam = getUrlVars()["timestart"];
     if (timeParam > 0) {
-        timedifference = timeParam;
+        starttimeoffset = timeParam;
     }
 
-    var lastTimeDifference = 0;
-    var lastWidth = 0;
+    setData(starttimeoffset);
 
-    setData(timedifference);
-
-    function setData(timedifference) {
-
-        var maxwidth = 800;
-        var width = $(window).width() - 30;
-        if (width > maxwidth)
-            width = maxwidth;
-
-        if (timedifference == 0)
-            timedifference = lastTimeDifference
-
-        if (width == lastWidth && timedifference == lastTimeDifference)
-            return;
-
-        //$("#info").text("timediff:" + timedifference + " lasttimediff:" + lastTimeDifference + " width:" + width + " lastwidth:" + lastWidth);
-
-        lastWidth = width;
-        lastTimeDifference = timedifference;
+    function setData(starttimeoffset) {
 
         $(".settime").removeClass("active");
-        var settimelink = ".settime-" + timedifference;
+        var settimelink = ".settime-" + starttimeoffset;
         $(settimelink).addClass("active");
 
-        //Minuter till millisekunder
-        timedifference = timedifference * 60 * 1000;
 
-        $.getJSON("http://api.thingspeak.com/channels/58794/feed/last.json?key=TDJ5MB9BR7URASCE", function (data) {
+        $.getJSON("http://api.thingspeak.com/channels/@ViewBag.ChannelId/feed/last.json?key=@ViewBag.ApiReadKey", function (data) {
             $("#current-temp").text(data.field1);
             $("#current-hum").text(data.field2);
         })
 
-        var height = Math.round(width * 0.6);
+        setChart(starttimeoffset);
+        return false;
+    }
 
-        var temperatureurl = 'https://api.thingspeak.com/channels/58794/charts/1?width={width}&height={height}&results=8000&dynamic=false&title=Temperatur&key=TDJ5MB9BR7URASCE&max=40&min=-10';
-        var humidityurl = 'https://api.thingspeak.com/channels/58794/charts/2?width={width}&height={height}&results=8000&dynamic=false&title=Fuktighet&key=TDJ5MB9BR7URASCE&max=100&min=0';
+    function getAverage(values, index, kind, zone, currentValue) {
+        var surroundingvalues = [];
+        for (var i = index - zone; i <= index + zone; i++) {
+            if (i >= 0 && i < values.length && i != index) {
+                var value = 0;
+                if (kind == "temp")
+                    value = parseInt(values[i].field1);
+                else
+                    value = parseInt(values[i].field2);
 
-        temperatureurl = temperatureurl.replace('{height}', height);
-        temperatureurl = temperatureurl.replace('{width}', width);
-        humidityurl = humidityurl.replace('{height}', height);
-        humidityurl = humidityurl.replace('{width}', width);
+                if (!isNaN(value)) {
+                    surroundingvalues.push(value);
+                }
+            }
+        }
 
-        $(".chart").attr('width', width);
-        $(".chart").attr('height', height);
+        surroundingvalues.sort();
+        //Remove first/smallest value
+        surroundingvalues.shift();
+        //Remove last/largest value
+        surroundingvalues.pop();
 
+        if (surroundingvalues.length == 0)
+            return currentValue;
 
+        var sum = 0;
+        var count = 0;
+        for (var i = 0; i < surroundingvalues.length; i++) {
+            sum += surroundingvalues[i];
+            count++;
+        }
+
+        var avg = sum / count;
+        return avg;
+    }
+    function setChart(starttimeoffset) {
+
+        //Minuter till millisekunder
+        var starttimeoffsetms = starttimeoffset * 60 * 1000;
         var starttime = new Date();
-        starttime.setTime(starttime.getTime() - timedifference);
-        var start = "&start=" + starttime.getUTCFullYear().toString() + "-" + zerofill(starttime.getUTCMonth() + 1, 2) + "-"
+        starttime.setTime(starttime.getTime() - starttimeoffsetms);
+        var start = starttime.getUTCFullYear().toString() + "-" + zerofill(starttime.getUTCMonth() + 1, 2) + "-"
             + zerofill(starttime.getUTCDate(), 2) + "%20" + zerofill(starttime.getUTCHours(), 2)
             + ":" + zerofill(starttime.getUTCMinutes(), 2) + ":00"
 
-        temperatureurl = temperatureurl + start;
-        humidityurl = humidityurl + start;
 
-        $("#temperature").attr('src', temperatureurl);
-        $("#humidity").attr('src', humidityurl);
+        var dataUrl = "https://thingspeak.com/channels/@ViewBag.ChannelId/feed.json?api_key=@ViewBag.ApiReadKey";
 
-        return false;
+        if (start)
+            dataUrl = dataUrl + "&start=" + start;
+
+        $.getJSON(dataUrl, function (data) {
+            if (data == '-1') {
+                $("#chart-container").append('Kan inte visa data!');
+                return;
+            }
+
+            var chartData = {
+                temperaturer: [],
+                fuktigheter: []
+            };
+
+            $.each(data.feeds, function (index, value) {
+                var pointDate = getChartDate(value.created_at)
+
+                var temp = parseFloat(value.field1);
+                if (!isNaN(temp)) {
+                    var avg = getAverage(data.feeds, index, "temp", 2, temp);
+                    if (Math.abs(temp - avg) < 30)
+                        chartData.temperaturer.push([pointDate, temp]);
+                    else
+                        console.log("temp: " + temp);
+                }
+
+                var hum = parseFloat(value.field2);
+                if (!isNaN(hum)) {
+                    var avg = getAverage(data.feeds, index, "hum", 2, hum);
+                    if (Math.abs(hum - avg) < 30)
+                        chartData.fuktigheter.push([pointDate, hum]);
+                    else
+                        console.log("hum: " + hum);
+                }
+            });
+
+            var chartOptions = {
+                title: {
+                    text: 'Temperatur och fuktighet'
+                },
+                chart: {
+                    zoomType: 'x'
+                },
+                colors: ['#1111ee', '#222222'],
+                xAxis: {
+                    type: 'datetime',
+                    title: {
+                        text: 'Datum'
+                    }
+                },
+                yAxis: [{ // Primary yAxis
+                    title: {
+                        text: null
+                    },
+                    labels: {
+                        format: '{value}°C'
+                    }
+                }, { // Secondary yAxis
+                    title: {
+                        text: null
+                    },
+                    labels: {
+                        format: '{value} %'
+                    },
+                    min: 0,
+                    max: 100,
+                    opposite: true
+                }],
+                tooltip: {
+                    shared: true
+                },
+
+                series: [{
+                    name: 'Temperatur',
+                    type: 'spline',
+                    tooltip: {
+                        valueSuffix: ' °C'
+                    },
+                    data: chartData.temperaturer
+                }, {
+                    name: 'Fuktighet',
+                    type: 'spline',
+                    tooltip: {
+                        valueSuffix: ' %'
+                    },
+                    yAxis: 1,
+                    data: chartData.fuktigheter
+                }]
+            };
+            // draw the chart
+            $("#chart-container").highcharts(chartOptions);
+
+            // end getJSON success
+        })
+        // chained to getjson, on error
+        .error(function () {
+            $("#chart-container").html('Invalid Channel.');
+        });
     }
+
 </script>
