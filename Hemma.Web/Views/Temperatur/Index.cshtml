@@ -8,11 +8,11 @@
     <div class="col-md-12">
         <h3>Temperatur: <span class="label label-info" id="current-temp"></span> &deg; C</h3>
         <h3>Fuktighet: <span class="label label-info" id="current-hum"></span> %</h3>
-    </div>
+        <h3>Senaste: <span class="label label-default" id="last-value-date"></span></h3>    </div>
 </div>
 
 <div class="row">
-    <div id="chart-container">
+    <div id="chart-container" class="block-center">
         <img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />
     </div>
 </div>
@@ -28,8 +28,10 @@
     </div>
 </div>
 <hr />
+
 <script src="http://code.highcharts.com/4/highcharts.js"></script>
 <script src="http://code.highcharts.com/4/modules/exporting.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
 
 <script type="text/javascript">
     var myOffset = new Date().getTimezoneOffset();
@@ -82,10 +84,15 @@
         $(settimelink).addClass("active");
 
 
-        $.getJSON("http://api.thingspeak.com/channels/@ViewBag.ChannelId/feed/last.json?key=@ViewBag.ApiReadKey", function (data) {
+        $.getJSON("http://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds/last.json?api_key=@ViewBag.ApiReadKey", function (data) {
             $("#current-temp").text(data.field1);
             $("#current-hum").text(data.field2);
-        })
+        });
+
+        $.getJSON("https://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds.json?api_key=@ViewBag.ApiReadKey&results=1", function (data) {
+            var date = getChartDate(data.channel.updated_at);
+            $("#last-value-date").text($.format.date(date, "dd.MM.yyyy HH:MM"));
+        });
 
         setChart(starttimeoffset);
 
@@ -138,7 +145,7 @@
             + ":" + zerofill(starttime.getUTCMinutes(), 2) + ":00"
 
 
-        var dataUrl = "https://thingspeak.com/channels/@ViewBag.ChannelId/feed.json?api_key=@ViewBag.ApiReadKey";
+        var dataUrl = "https://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds.json?api_key=@ViewBag.ApiReadKey";
 
         if (start)
             dataUrl = dataUrl + "&start=" + start;
@@ -181,7 +188,7 @@
                     text: 'Temperatur och fuktighet'
                 },
                 chart: {
-                    zoomType: 'x',
+                    zoomType: $(window).width() < 750 ? 'none ' : 'x',
                     pinchType: 'none'
                 },
                 colors: ['#1111ee', '#222222'],
