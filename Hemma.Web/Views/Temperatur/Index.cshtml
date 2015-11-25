@@ -8,7 +8,8 @@
     <div class="col-md-12">
         <h3>Temperatur: <span class="label label-info" id="current-temp"></span> &deg; C</h3>
         <h3>Fuktighet: <span class="label label-info" id="current-hum"></span> %</h3>
-        <h3>Senaste: <span class="label label-default" id="last-value-date"></span></h3>    </div>
+        <h3>Senaste: <span class="label label-default" id="last-value-date"></span></h3>
+    </div>
 </div>
 
 <div class="row">
@@ -100,6 +101,7 @@
     }
 
     function getAverage(values, index, kind, zone, currentValue) {
+
         var surroundingvalues = [];
         for (var i = index - zone; i <= index + zone; i++) {
             if (i >= 0 && i < values.length && i != index) {
@@ -134,6 +136,24 @@
         var avg = sum / count;
         return avg;
     }
+
+    var removedValues = 0;
+    function valueSameAsNeighbours(values, index, kind) {
+
+        //Check if current value is the same as previous and next
+        if (index > 0 && index < values.length - 1) {
+            var currentValue = (kind == "temp" ? values[index].field1 : values[index].field2);
+            var prevValue = (kind == "temp" ? values[index - 1].field1 : values[index - 1].field2);
+            if (prevValue == currentValue) {
+                var nextValue = (kind == "temp" ? values[index + 1].field1 : values[index + 1].field2);
+                if (nextValue == currentValue) {
+                    removedValues++;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     function setChart(starttimeoffset) {
 
         //Minuter till millisekunder
@@ -150,7 +170,13 @@
         if (start)
             dataUrl = dataUrl + "&start=" + start;
 
-        $.getJSON(dataUrl, function (data) {
+        $.getJSON(dataUrl, setChartData)
+        // chained to getjson, on error
+        .error(function () {
+            $("#chart-container").html('Invalid Channel.');
+        });
+
+        function setChartData(data) {
             if (data == '-1') {
                 $("#chart-container").append('Kan inte visa data!');
                 return;
@@ -164,22 +190,26 @@
             $.each(data.feeds, function (index, value) {
                 var pointDate = getChartDate(value.created_at)
 
-                var temp = parseFloat(value.field1);
-                if (!isNaN(temp)) {
-                    var avg = getAverage(data.feeds, index, "temp", 2, temp);
-                    if (Math.abs(temp - avg) < 30)
-                        chartData.temperaturer.push([pointDate, temp]);
-                    else
-                        console.log("temp: " + temp);
+                if (!valueSameAsNeighbours(data.feeds, index, "temp")) {
+                    var temp = parseFloat(value.field1);
+                    if (!isNaN(temp)) {
+                        var avg = getAverage(data.feeds, index, "temp", 2, temp);
+                        if (Math.abs(temp - avg) < 30)
+                            chartData.temperaturer.push([pointDate, temp]);
+                        else
+                            console.log("temp: " + temp);
+                    }
                 }
 
-                var hum = parseFloat(value.field2);
-                if (!isNaN(hum)) {
-                    var avg = getAverage(data.feeds, index, "hum", 2, hum);
-                    if (Math.abs(hum - avg) < 30)
-                        chartData.fuktigheter.push([pointDate, hum]);
-                    else
-                        console.log("hum: " + hum);
+                if (!valueSameAsNeighbours(data.feeds, index, "hum")) {
+                    var hum = parseFloat(value.field2);
+                    if (!isNaN(hum)) {
+                        var avg = getAverage(data.feeds, index, "hum", 2, hum);
+                        if (Math.abs(hum - avg) < 30)
+                            chartData.fuktigheter.push([pointDate, hum]);
+                        else
+                            console.log("hum: " + hum);
+                    }
                 }
             });
 
@@ -239,13 +269,7 @@
             };
             // draw the chart
             $("#chart-container").highcharts(chartOptions);
-
-            // end getJSON success
-        })
-        // chained to getjson, on error
-        .error(function () {
-            $("#chart-container").html('Invalid Channel.');
-        });
+        }
     }
 
 </script>
