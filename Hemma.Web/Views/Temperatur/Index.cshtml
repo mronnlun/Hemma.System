@@ -77,7 +77,7 @@
     function showRawData() {
         $("#rawdata").empty();
         $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
-        getChartData(60 * 24 * 180,
+        getChartDataFromMinutes(60 * 24 * 180,
             function (data) {
                 $("#rawdata").empty();
                 var source = $("#alldata-template").html();
@@ -155,7 +155,7 @@
             $("#last-value-date").text(formattedDate);
         });
 
-        getChartData(starttimeoffset, setChartData, function () {
+        getChartDataFromMinutes(starttimeoffset, setChartData, function () {
             $("#chart-container").html('Invalid Channel.');
         });
 
@@ -217,11 +217,15 @@
         return false;
     }
 
-    function getChartData(starttimeoffset, successAction, failureAction) {
+    function getChartDataFromMinutes(startTimeOffset, successAction, failureAction) {
         //Minuter till millisekunder
-        var starttimeoffsetms = starttimeoffset * 60 * 1000;
+        var starttimeoffsetms = startTimeOffset * 60 * 1000;
         var starttime = new Date();
         starttime.setTime(starttime.getTime() - starttimeoffsetms);
+        return getChartData(starttime, successAction, failureAction, null, null);
+    }
+
+    function getChartData(starttime, successAction, failureAction, previousData, previousStartTime) {
         var start = starttime.getUTCFullYear().toString() + "-" + zerofill(starttime.getUTCMonth() + 1, 2) + "-"
             + zerofill(starttime.getUTCDate(), 2) + "%20" + zerofill(starttime.getUTCHours(), 2)
             + ":" + zerofill(starttime.getUTCMinutes(), 2) + ":00"
@@ -233,7 +237,15 @@
             dataUrl = dataUrl + "&start=" + start;
 
         $.getJSON(dataUrl, function (data) {
-            successAction(data);
+            //var lastTimestamp = (data.feeds.length > 0 ? moment(data.feeds[data.feeds.length - 1].created_at) : moment());
+            //var difference = moment().diff(lastTimestamp);
+            //var hoursSince = moment.duration(difference).asHours();
+            //if (Math.floor(hoursSince) > 0 && (previousStartTime == null || previousStartTime != starttime)) {
+            //    getChartData(lastTimestamp.asDate(), successAction, failureAction, data, false)
+            //}
+            //else {
+                successAction(data);
+            //}
         })
         // chained to getjson, on error
         .error(function () {
