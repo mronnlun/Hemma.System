@@ -19,12 +19,20 @@
 </div>
 
 <div class="row">
-    <div class="col-md-offset-2 col-xs-offset-1 col-md-10 col-xs-11">
+    <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
         <div class="btn-group">
-            <a class="settime btn btn-default settime-60" href="#" onclick="setData(60)">60 min</a>
-            <a class="settime btn btn-default settime-1440" href="#" onclick="setData(1440)">24 h</a>
-            <a class="settime btn btn-default settime-10080" href="#" onclick="setData(10080)">7 d</a>
-            <a class="settime btn btn-default settime-40320" href="#" onclick="setData(40320)">28 d</a>
+            <a class="settime btn btn-default settime-60" href="#" onclick="return setData(60)">60 min</a>
+            <a class="settime btn btn-default settime-1440" href="#" onclick="return setData(1440)">24 h</a>
+            <a class="settime btn btn-default settime-10080" href="#" onclick="return setData(10080)">7 d</a>
+            <a class="settime btn btn-default settime-40320" href="#" onclick="return setData(40320)">28 d</a>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
+        <a class="showrawdata btn btn-default" href="#" onclick="return showRawData()">Visa all data</a>
+        <div id="rawdata">
         </div>
     </div>
 </div>
@@ -32,9 +40,58 @@
 
 <script src="http://code.highcharts.com/4/highcharts.js"></script>
 <script src="http://code.highcharts.com/4/modules/exporting.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+
+<script id="alldata-template" type="text/x-handlebars-template">
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+        <th>Datum</th>
+        <th>Temperatur</th>
+        <th>Fuktighet</th>
+        </thead>
+        <tbody>
+            {{#feeds}}
+            <tr>
+                <td>{{dateFormat created_at}}</td>
+                <td>{{field1}}</td>
+                <td>{{field2}}</td>
+            </tr>
+            {{/feeds}}
+        </tbody>
+    </table>
+</script>
 
 <script type="text/javascript">
+    Handlebars.registerHelper('dateFormat', function (context, block) {
+        if (window.moment) {
+            var f = block.hash.format || "D.M.YYYY H:mm";
+            var date = moment.parseZone(context);
+            var formattedDate = date.local().format(f);
+            return formattedDate;
+        } else {
+            return context;   //  moment plugin not available. return data as is.
+        };
+    });
+
+    function showRawData() {
+        $("#rawdata").empty();
+        $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
+        getChartData(60 * 24 * 180,
+            function (data) {
+                $("#rawdata").empty();
+                var source = $("#alldata-template").html();
+                var template = Handlebars.compile(source);
+
+                $('#rawdata').append(template(data));
+            },
+            function () {
+
+            });
+
+        return false;
+    }
+
     var myOffset = new Date().getTimezoneOffset();
 
     // converts date format from JSON
@@ -78,7 +135,9 @@
 
     startUp();
 
+    var lastStartTimeOffset = 1440;
     function setData(starttimeoffset) {
+        lastStartTimeOffset = starttimeoffset;
 
         $(".settime").removeClass("active");
         var settimelink = ".settime-" + starttimeoffset;
@@ -91,11 +150,14 @@
         });
 
         $.getJSON("https://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds.json?api_key=@ViewBag.ApiReadKey&results=1", function (data) {
-            var date = getChartDate(data.channel.updated_at);
-            $("#last-value-date").text($.format.date(date, "dd.MM.yyyy HH:MM"));
+            var date = moment.parseZone(data.channel.updated_at);
+            var formattedDate = date.local().format("D.M.YYYY H:mm");
+            $("#last-value-date").text(formattedDate);
         });
 
-        setChart(starttimeoffset);
+        getChartData(starttimeoffset, setChartData, function () {
+            $("#chart-container").html('Invalid Channel.');
+        });
 
         return false;
     }
@@ -154,8 +216,8 @@
         }
         return false;
     }
-    function setChart(starttimeoffset) {
 
+    function getChartData(starttimeoffset, successAction, failureAction) {
         //Minuter till millisekunder
         var starttimeoffsetms = starttimeoffset * 60 * 1000;
         var starttime = new Date();
@@ -170,106 +232,109 @@
         if (start)
             dataUrl = dataUrl + "&start=" + start;
 
-        $.getJSON(dataUrl, setChartData)
+        $.getJSON(dataUrl, function (data) {
+            successAction(data);
+        })
         // chained to getjson, on error
         .error(function () {
-            $("#chart-container").html('Invalid Channel.');
+            failureAction();
         });
 
-        function setChartData(data) {
-            if (data == '-1') {
-                $("#chart-container").append('Kan inte visa data!');
-                return;
+    }
+    function setChartData(data) {
+        if (data == '-1') {
+            $("#chart-container").append('Kan inte visa data!');
+            return;
+        }
+
+        var chartData = {
+            temperaturer: [],
+            fuktigheter: []
+        };
+
+        $.each(data.feeds, function (index, value) {
+            var pointDate = getChartDate(value.created_at)
+
+            if (!valueSameAsNeighbours(data.feeds, index, "temp")) {
+                var temp = parseFloat(value.field1);
+                if (!isNaN(temp)) {
+                    var avg = getAverage(data.feeds, index, "temp", 2, temp);
+                    if (Math.abs(temp - avg) < 30)
+                        chartData.temperaturer.push([pointDate, temp]);
+                    else
+                        console.log("temp: " + temp);
+                }
             }
 
-            var chartData = {
-                temperaturer: [],
-                fuktigheter: []
-            };
-
-            $.each(data.feeds, function (index, value) {
-                var pointDate = getChartDate(value.created_at)
-
-                if (!valueSameAsNeighbours(data.feeds, index, "temp")) {
-                    var temp = parseFloat(value.field1);
-                    if (!isNaN(temp)) {
-                        var avg = getAverage(data.feeds, index, "temp", 2, temp);
-                        if (Math.abs(temp - avg) < 30)
-                            chartData.temperaturer.push([pointDate, temp]);
-                        else
-                            console.log("temp: " + temp);
-                    }
+            if (!valueSameAsNeighbours(data.feeds, index, "hum")) {
+                var hum = parseFloat(value.field2);
+                if (!isNaN(hum)) {
+                    var avg = getAverage(data.feeds, index, "hum", 2, hum);
+                    if (Math.abs(hum - avg) < 30)
+                        chartData.fuktigheter.push([pointDate, hum]);
+                    else
+                        console.log("hum: " + hum);
                 }
+            }
+        });
 
-                if (!valueSameAsNeighbours(data.feeds, index, "hum")) {
-                    var hum = parseFloat(value.field2);
-                    if (!isNaN(hum)) {
-                        var avg = getAverage(data.feeds, index, "hum", 2, hum);
-                        if (Math.abs(hum - avg) < 30)
-                            chartData.fuktigheter.push([pointDate, hum]);
-                        else
-                            console.log("hum: " + hum);
-                    }
-                }
-            });
-
-            var chartOptions = {
+        var chartOptions = {
+            title: {
+                text: 'Temperatur och fuktighet'
+            },
+            chart: {
+                zoomType: $(window).width() < 750 ? 'none ' : 'x',
+                pinchType: 'none'
+            },
+            colors: ['#1111ee', '#222222'],
+            xAxis: {
+                type: 'datetime',
                 title: {
-                    text: 'Temperatur och fuktighet'
+                    text: 'Datum'
+                }
+            },
+            yAxis: [{ // Primary yAxis
+                title: {
+                    text: null
                 },
-                chart: {
-                    zoomType: $(window).width() < 750 ? 'none ' : 'x',
-                    pinchType: 'none'
+                labels: {
+                    format: '{value}°C'
+                }
+            }, { // Secondary yAxis
+                title: {
+                    text: null
                 },
-                colors: ['#1111ee', '#222222'],
-                xAxis: {
-                    type: 'datetime',
-                    title: {
-                        text: 'Datum'
-                    }
+                labels: {
+                    format: '{value} %'
                 },
-                yAxis: [{ // Primary yAxis
-                    title: {
-                        text: null
-                    },
-                    labels: {
-                        format: '{value}°C'
-                    }
-                }, { // Secondary yAxis
-                    title: {
-                        text: null
-                    },
-                    labels: {
-                        format: '{value} %'
-                    },
-                    min: 0,
-                    max: 100,
-                    opposite: true
-                }],
-                tooltip: {
-                    shared: true
-                },
+                min: 0,
+                max: 100,
+                opposite: true
+            }],
+            tooltip: {
+                shared: true
+            },
 
-                series: [{
-                    name: 'Temperatur',
-                    type: 'spline',
-                    tooltip: {
-                        valueSuffix: ' °C'
-                    },
-                    data: chartData.temperaturer
-                }, {
-                    name: 'Fuktighet',
-                    type: 'spline',
-                    tooltip: {
-                        valueSuffix: ' %'
-                    },
-                    yAxis: 1,
-                    data: chartData.fuktigheter
-                }]
-            };
-            // draw the chart
-            $("#chart-container").highcharts(chartOptions);
-        }
+            series: [{
+                name: 'Temperatur',
+                type: 'spline',
+                tooltip: {
+                    valueSuffix: ' °C'
+                },
+                data: chartData.temperaturer
+            }, {
+                name: 'Fuktighet',
+                type: 'spline',
+                tooltip: {
+                    valueSuffix: ' %'
+                },
+                yAxis: 1,
+                data: chartData.fuktigheter
+            }]
+        };
+        // draw the chart
+        $("#chart-container").highcharts(chartOptions);
     }
+
 
 </script>
