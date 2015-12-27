@@ -14,7 +14,7 @@ namespace Hemma.Web.Controllers
         {
             ViewBag.ChannelId = ConfigurationManager.AppSettings["Temperature:ChannelId"];
             ViewBag.ApiReadKey = ConfigurationManager.AppSettings["Temperature:ApiReadyKey"];
-
+            ViewBag.DataInterval = ConfigurationManager.AppSettings["Temperature:DataInterval"];
             return View();
         }
     }

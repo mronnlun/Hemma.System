@@ -199,7 +199,6 @@
         return avg;
     }
 
-    var removedValues = 0;
     function valueSameAsNeighbours(values, index, kind) {
 
         //Check if current value is the same as previous and next
@@ -209,7 +208,6 @@
             if (prevValue == currentValue) {
                 var nextValue = (kind == "temp" ? values[index + 1].field1 : values[index + 1].field2);
                 if (nextValue == currentValue) {
-                    removedValues++;
                     return true;
                 }
             }
@@ -218,36 +216,53 @@
     }
 
     function getChartDataFromMinutes(startTimeOffset, successAction, failureAction) {
-        //Minuter till millisekunder
-        var starttimeoffsetms = startTimeOffset * 60 * 1000;
-        var starttime = new Date();
-        starttime.setTime(starttime.getTime() - starttimeoffsetms);
-        return getChartData(starttime, successAction, failureAction, null, null);
+        var startTime = addSeconds(new Date(), -1 * startTimeOffset * 60);
+        return getChartData(startTime, @ViewBag.DataInterval, successAction, failureAction, null);
     }
 
-    function getChartData(starttime, successAction, failureAction, previousData, previousStartTime) {
-        var start = starttime.getUTCFullYear().toString() + "-" + zerofill(starttime.getUTCMonth() + 1, 2) + "-"
-            + zerofill(starttime.getUTCDate(), 2) + "%20" + zerofill(starttime.getUTCHours(), 2)
-            + ":" + zerofill(starttime.getUTCMinutes(), 2) + ":00"
+    function getTimeString(time) {
+        var timeString = time.getUTCFullYear().toString() + "-" + zerofill(time.getUTCMonth() + 1, 2) + "-"
+            + zerofill(time.getUTCDate(), 2) + "%20" + zerofill(time.getUTCHours(), 2)
+            + ":" + zerofill(time.getUTCMinutes(), 2) + ":00"
+
+        return timeString;
+    }
+
+    function addSeconds(time, seconds) {
+        var milliseconds = seconds * 1000;
+        var newTime = new Date();
+        newTime.setTime(time.getTime() + milliseconds);
+        return newTime;
+    }
+
+    function getChartData(starttime, dataInterval, successAction, failureAction, previousData) {
 
 
         var dataUrl = "https://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds.json?api_key=@ViewBag.ApiReadKey";
 
-        if (start)
-            dataUrl = dataUrl + "&start=" + start;
+        var endTime = addSeconds(new Date(), 10 * 60);
+
+        if (starttime) {
+            dataUrl = dataUrl + "&start=" + getTimeString(starttime);
+
+            if (dataInterval > 0) {
+                endTime = addSeconds(starttime, 8000 * dataInterval * 60);
+                dataUrl = dataUrl + "&end=" + getTimeString(endTime);
+            }
+        }
 
         $.getJSON(dataUrl, function (data) {
-            //var lastTimestamp = (data.feeds.length > 0 ? moment(data.feeds[data.feeds.length - 1].created_at) : moment());
-            //var difference = moment().diff(lastTimestamp);
-            //var hoursSince = moment.duration(difference).asHours();
-            //if (Math.floor(hoursSince) > 0 && (previousStartTime == null || previousStartTime != starttime)) {
-            //    getChartData(lastTimestamp.asDate(), successAction, failureAction, data, false)
-            //}
-            //else {
-                successAction(data);
-            //}
+
+            if (previousData == null)
+                previousData = data;
+            else if (data.feeds.length > 0)
+                previousData.feeds = previousData.feeds.concat(data.feeds);
+
+            if (endTime > new Date())
+                successAction(previousData);
+            else
+                getChartData(addSeconds(endTime, 1), dataInterval, successAction, failureAction, previousData);
         })
-        // chained to getjson, on error
         .error(function () {
             failureAction();
         });
@@ -273,8 +288,6 @@
                     var avg = getAverage(data.feeds, index, "temp", 2, temp);
                     if (Math.abs(temp - avg) < 30)
                         chartData.temperaturer.push([pointDate, temp]);
-                    else
-                        console.log("temp: " + temp);
                 }
             }
 
@@ -284,8 +297,6 @@
                     var avg = getAverage(data.feeds, index, "hum", 2, hum);
                     if (Math.abs(hum - avg) < 30)
                         chartData.fuktigheter.push([pointDate, hum]);
-                    else
-                        console.log("hum: " + hum);
                 }
             }
         });
