@@ -150,7 +150,7 @@ var thingSpeak = (function () {
         },
 
 
-        getFormattedData: function (data, fields) {
+        getFormattedData: function (data, fields, filterByAverage) {
 
             var formattedData = {
                 field1: [],
@@ -176,8 +176,12 @@ var thingSpeak = (function () {
                     if (!this.valueSameAsNeighbours(data.feeds, index, fieldName)) {
                         var value = parseFloat(dataPoint[fieldName]);
                         if (!isNaN(value)) {
-                            var avg = this.getAverage(data.feeds, index, fieldName, 2, value);
-                            if (Math.abs(value - avg) < 30)
+                            if (filterByAverage) {
+                                var avg = this.getAverage(data.feeds, index, fieldName, 2, value);
+                                if (Math.abs(value - avg) < 30)
+                                    formattedData[fieldName].push([pointDate, value]);
+                            }
+                            else
                                 formattedData[fieldName].push([pointDate, value]);
                         }
                     }
