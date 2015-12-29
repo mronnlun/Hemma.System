@@ -20,36 +20,4 @@ Handlebars.registerHelper('dateFormat', function (context, block) {
     };
 });
 
-function getTimeFromMinutes(minutes)
-{
-    var startTime = addSeconds(new Date(), -1 * minutes * 60);
-    return startTime;
-}
 
-function addSeconds(time, seconds) {
-    var milliseconds = seconds * 1000;
-    var newTime = new Date();
-    newTime.setTime(time.getTime() + milliseconds);
-    return newTime;
-}
-
-function getTimeString(time) {
-    var timeString = time.getUTCFullYear().toString() + "-" + zerofill(time.getUTCMonth() + 1, 2) + "-"
-        + zerofill(time.getUTCDate(), 2) + "%20" + zerofill(time.getUTCHours(), 2)
-        + ":" + zerofill(time.getUTCMinutes(), 2) + ":00"
-
-    return timeString;
-}
-
-function zerofill(number, length) {
-    // Setup
-    var result = number.toString();
-    var pad = length - result.length;
-
-    while (pad > 0) {
-        result = '0' + result;
-        pad--;
-    }
-
-    return result;
-}

@@ -63,42 +63,42 @@
 </script>
 
 <script type="text/javascript" src="~/Scripts/Utilities.js"></script>
-<script type="text/javascript" src="~/Scripts/IoT.js"></script>
+<script type="text/javascript" src="~/Scripts/Thingspeak.js"></script>
 <script type="text/javascript">
+
+    thingSpeak.config.apiReadKey = "@ViewBag.ApiReadKey";
+    thingSpeak.config.channelId = @ViewBag.ChannelId;
+    thingSpeak.config.dataInterval = @ViewBag.DataInterval;
+
     setData(1440);
 
     function setData(starttimeoffset) {
-
-        var dataInterval =@ViewBag.DataInterval;
-        var channelId = @ViewBag.ChannelId;
-        var apiReadKey= "@ViewBag.ApiReadKey";
 
         $(".settime").removeClass("active");
         var settimelink = ".settime-" + starttimeoffset;
         $(settimelink).addClass("active");
 
+        $("#chart-container").empty();
+        $("#chart-container").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
 
-        $.getJSON("http://api.thingspeak.com/channels/" + channelId + "/feeds/last.json?api_key=" + apiReadKey, function (data) {
+        thingSpeak.getLatestData(function (data) {
             $("#current-temp").text(data.field1);
             $("#current-hum").text(data.field2);
-        });
-
-        $.getJSON("https://api.thingspeak.com/channels/" + channelId + "/feeds.json?api_key=" + apiReadKey + "&results=1", function (data) {
-            var date = moment.parseZone(data.channel.updated_at);
+            var date = moment.parseZone(data.created_at);
             var formattedDate = date.local().format("D.M.YYYY H:mm");
             $("#last-value-date").text(formattedDate);
         });
 
-        var startTime = getTimeFromMinutes(starttimeoffset);
+        var startTime = thingSpeak.getTimeFromMinutes(starttimeoffset);
 
-        getChartData(startTime, dataInterval, channelId, apiReadKey, setChartData, setChartFailed);
+        thingSpeak.getData(startTime, setChartData, setChartFailed);
 
         return false;
     }
 
     function setChartData(data){
 
-        var formattedData = getFormattedData(data, 2);
+        var formattedData = thingSpeak.getFormattedData(data, 2);
 
         var chartOptions = {
             title: {
@@ -165,8 +165,10 @@
     function showRawData() {
         $("#rawdata").empty();
         $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
-        var startTime = getTimeFromMinutes(60 * 24 * 180);
-        getChartData(startTime, @ViewBag.DataInterval, @ViewBag.ChannelId, "@ViewBag.ApiReadKey",
+        
+        var startTime = thingSpeak.getTimeFromMinutes(60 * 24 * 180);
+        
+        thingSpeak.getData(startTime,
             function (data) {
                 $("#rawdata").empty();
                 var source = $("#alldata-template").html();
@@ -176,8 +178,7 @@
             },
             function () {
 
-            },
-            null);
+            });
 
         return false;
     }
