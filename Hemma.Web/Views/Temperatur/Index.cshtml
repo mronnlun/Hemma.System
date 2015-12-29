@@ -62,244 +62,43 @@
     </table>
 </script>
 
+<script type="text/javascript" src="~/Scripts/Utilities.js"></script>
+<script type="text/javascript" src="~/Scripts/IoT.js"></script>
 <script type="text/javascript">
-    Handlebars.registerHelper('dateFormat', function (context, block) {
-        if (window.moment) {
-            var f = block.hash.format || "D.M.YYYY H:mm";
-            var date = moment.parseZone(context);
-            var formattedDate = date.local().format(f);
-            return formattedDate;
-        } else {
-            return context;   //  moment plugin not available. return data as is.
-        };
-    });
+    setData(1440);
 
-    function showRawData() {
-        $("#rawdata").empty();
-        $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
-        getChartDataFromMinutes(60 * 24 * 180,
-            function (data) {
-                $("#rawdata").empty();
-                var source = $("#alldata-template").html();
-                var template = Handlebars.compile(source);
-
-                $('#rawdata').append(template(data));
-            },
-            function () {
-
-            });
-
-        return false;
-    }
-
-    var myOffset = new Date().getTimezoneOffset();
-
-    // converts date format from JSON
-    function getChartDate(d) {
-        // offset in minutes is converted to milliseconds and subtracted so that chart's x-axis is correct
-        return Date.parse(d) - (myOffset * 60000);
-    }
-
-    function getUrlVars() {
-        var vars = [], hash;
-        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-        for (var i = 0; i < hashes.length; i++) {
-            hash = hashes[i].split('=');
-            vars.push(hash[0]);
-            vars[hash[0]] = hash[1];
-        }
-        return vars;
-    }
-    function zerofill(number, length) {
-        // Setup
-        var result = number.toString();
-        var pad = length - result.length;
-
-        while (pad > 0) {
-            result = '0' + result;
-            pad--;
-        }
-
-        return result;
-    }
-
-    function startUp() {
-        var starttimeoffset = 1440;
-        var timeParam = getUrlVars()["timestart"];
-        if (timeParam > 0) {
-            starttimeoffset = timeParam;
-        }
-
-        setData(starttimeoffset);
-    }
-
-    startUp();
-
-    var lastStartTimeOffset = 1440;
     function setData(starttimeoffset) {
-        lastStartTimeOffset = starttimeoffset;
+
+        var dataInterval =@ViewBag.DataInterval;
+        var channelId = @ViewBag.ChannelId;
+        var apiReadKey= "@ViewBag.ApiReadKey";
 
         $(".settime").removeClass("active");
         var settimelink = ".settime-" + starttimeoffset;
         $(settimelink).addClass("active");
 
 
-        $.getJSON("http://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds/last.json?api_key=@ViewBag.ApiReadKey", function (data) {
+        $.getJSON("http://api.thingspeak.com/channels/" + channelId + "/feeds/last.json?api_key=" + apiReadKey, function (data) {
             $("#current-temp").text(data.field1);
             $("#current-hum").text(data.field2);
         });
 
-        $.getJSON("https://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds.json?api_key=@ViewBag.ApiReadKey&results=1", function (data) {
+        $.getJSON("https://api.thingspeak.com/channels/" + channelId + "/feeds.json?api_key=" + apiReadKey + "&results=1", function (data) {
             var date = moment.parseZone(data.channel.updated_at);
             var formattedDate = date.local().format("D.M.YYYY H:mm");
             $("#last-value-date").text(formattedDate);
         });
 
-        getChartDataFromMinutes(starttimeoffset, setChartData, function () {
-            $("#chart-container").html('Invalid Channel.');
-        });
+        var startTime = getTimeFromMinutes(starttimeoffset);
+
+        getChartData(startTime, dataInterval, channelId, apiReadKey, setChartData, setChartFailed);
 
         return false;
     }
 
-    function getAverage(values, index, kind, zone, currentValue) {
+    function setChartData(data){
 
-        var surroundingvalues = [];
-        for (var i = index - zone; i <= index + zone; i++) {
-            if (i >= 0 && i < values.length && i != index) {
-                var value = 0;
-                if (kind == "temp")
-                    value = parseInt(values[i].field1);
-                else
-                    value = parseInt(values[i].field2);
-
-                if (!isNaN(value)) {
-                    surroundingvalues.push(value);
-                }
-            }
-        }
-
-        surroundingvalues.sort();
-        //Remove first/smallest value
-        surroundingvalues.shift();
-        //Remove last/largest value
-        surroundingvalues.pop();
-
-        if (surroundingvalues.length == 0)
-            return currentValue;
-
-        var sum = 0;
-        var count = 0;
-        for (var i = 0; i < surroundingvalues.length; i++) {
-            sum += surroundingvalues[i];
-            count++;
-        }
-
-        var avg = sum / count;
-        return avg;
-    }
-
-    function valueSameAsNeighbours(values, index, kind) {
-
-        //Check if current value is the same as previous and next
-        if (index > 0 && index < values.length - 1) {
-            var currentValue = (kind == "temp" ? values[index].field1 : values[index].field2);
-            var prevValue = (kind == "temp" ? values[index - 1].field1 : values[index - 1].field2);
-            if (prevValue == currentValue) {
-                var nextValue = (kind == "temp" ? values[index + 1].field1 : values[index + 1].field2);
-                if (nextValue == currentValue) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    function getChartDataFromMinutes(startTimeOffset, successAction, failureAction) {
-        var startTime = addSeconds(new Date(), -1 * startTimeOffset * 60);
-        return getChartData(startTime, @ViewBag.DataInterval, successAction, failureAction, null);
-    }
-
-    function getTimeString(time) {
-        var timeString = time.getUTCFullYear().toString() + "-" + zerofill(time.getUTCMonth() + 1, 2) + "-"
-            + zerofill(time.getUTCDate(), 2) + "%20" + zerofill(time.getUTCHours(), 2)
-            + ":" + zerofill(time.getUTCMinutes(), 2) + ":00"
-
-        return timeString;
-    }
-
-    function addSeconds(time, seconds) {
-        var milliseconds = seconds * 1000;
-        var newTime = new Date();
-        newTime.setTime(time.getTime() + milliseconds);
-        return newTime;
-    }
-
-    function getChartData(starttime, dataInterval, successAction, failureAction, previousData) {
-
-
-        var dataUrl = "https://api.thingspeak.com/channels/@ViewBag.ChannelId/feeds.json?api_key=@ViewBag.ApiReadKey";
-
-        var endTime = addSeconds(new Date(), 10 * 60);
-
-        if (starttime) {
-            dataUrl = dataUrl + "&start=" + getTimeString(starttime);
-
-            if (dataInterval > 0) {
-                endTime = addSeconds(starttime, 8000 * dataInterval * 60);
-                dataUrl = dataUrl + "&end=" + getTimeString(endTime);
-            }
-        }
-
-        $.getJSON(dataUrl, function (data) {
-
-            if (previousData == null)
-                previousData = data;
-            else if (data.feeds.length > 0)
-                previousData.feeds = previousData.feeds.concat(data.feeds);
-
-            if (endTime > new Date())
-                successAction(previousData);
-            else
-                getChartData(addSeconds(endTime, 1), dataInterval, successAction, failureAction, previousData);
-        })
-        .error(function () {
-            failureAction();
-        });
-
-    }
-    function setChartData(data) {
-        if (data == '-1') {
-            $("#chart-container").append('Kan inte visa data!');
-            return;
-        }
-
-        var chartData = {
-            temperaturer: [],
-            fuktigheter: []
-        };
-
-        $.each(data.feeds, function (index, value) {
-            var pointDate = getChartDate(value.created_at)
-
-            if (!valueSameAsNeighbours(data.feeds, index, "temp")) {
-                var temp = parseFloat(value.field1);
-                if (!isNaN(temp)) {
-                    var avg = getAverage(data.feeds, index, "temp", 2, temp);
-                    if (Math.abs(temp - avg) < 30)
-                        chartData.temperaturer.push([pointDate, temp]);
-                }
-            }
-
-            if (!valueSameAsNeighbours(data.feeds, index, "hum")) {
-                var hum = parseFloat(value.field2);
-                if (!isNaN(hum)) {
-                    var avg = getAverage(data.feeds, index, "hum", 2, hum);
-                    if (Math.abs(hum - avg) < 30)
-                        chartData.fuktigheter.push([pointDate, hum]);
-                }
-            }
-        });
+        var formattedData = getFormattedData(data, 2);
 
         var chartOptions = {
             title: {
@@ -344,7 +143,7 @@
                 tooltip: {
                     valueSuffix: ' °C'
                 },
-                data: chartData.temperaturer
+                data: formattedData.field1
             }, {
                 name: 'Fuktighet',
                 type: 'spline',
@@ -352,12 +151,34 @@
                     valueSuffix: ' %'
                 },
                 yAxis: 1,
-                data: chartData.fuktigheter
+                data: formattedData.field2
             }]
         };
         // draw the chart
         $("#chart-container").highcharts(chartOptions);
     }
 
+    function setChartFailed() {
+        $("#chart-container").html('Invalid Channel.');
+    }
 
+    function showRawData() {
+        $("#rawdata").empty();
+        $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
+        var startTime = getTimeFromMinutes(60 * 24 * 180);
+        getChartData(startTime, @ViewBag.DataInterval, @ViewBag.ChannelId, "@ViewBag.ApiReadKey",
+            function (data) {
+                $("#rawdata").empty();
+                var source = $("#alldata-template").html();
+                var template = Handlebars.compile(source);
+
+                $('#rawdata').append(template(data));
+            },
+            function () {
+
+            },
+            null);
+
+        return false;
+    }
 </script>
