@@ -1,14 +1,6 @@
 ﻿
 var thingSpeak = (function () {
 
-    function addSeconds(time, seconds) {
-        var milliseconds = seconds * 1000;
-        var newTime = new Date();
-        newTime.setTime(time.getTime() + milliseconds);
-        return newTime;
-    }
-
-
     function getTimeString(time) {
         var timeString = time.getUTCFullYear().toString() + "-" + zerofill(time.getUTCMonth() + 1, 2) + "-"
             + zerofill(time.getUTCDate(), 2) + "%20" + zerofill(time.getUTCHours(), 2)
@@ -82,11 +74,6 @@ var thingSpeak = (function () {
                     if (successAction)
                         successAction(data);
                 });
-        },
-
-        getTimeFromMinutes: function (minutes) {
-            var startTime = addSeconds(new Date(), -1 * minutes * 60);
-            return startTime;
         },
 
         getChartDate: function (d) {

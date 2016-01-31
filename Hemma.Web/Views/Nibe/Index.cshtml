@@ -1,0 +1,44 @@
+﻿
+@{
+    ViewBag.Title = "Värmepump";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Index</h2>
+
+<div class="row">
+    <div id="chart-container" class="block-center">
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
+        <div class="btn-group">
+            <a class="settime btn btn-default settime-60" href="#" onclick="return setData(60)">60 min</a>
+            <a class="settime btn btn-default settime-1440" href="#" onclick="return setData(1440)">24 h</a>
+            <a class="settime btn btn-default settime-10080" href="#" onclick="return setData(10080)">7 d</a>
+            <a class="settime btn btn-default settime-40320" href="#" onclick="return setData(40320)">28 d</a>
+        </div>
+    </div>
+</div>
+
+<script src="http://code.highcharts.com/4/highcharts.js"></script>
+<script src="http://code.highcharts.com/4/modules/exporting.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+<script type="text/javascript" src="~/Scripts/Utilities.js"></script>
+
+<script type="text/javascript">
+    var starttimeoffset = 60;
+    var starttime = getTimeFromMinutes(starttimeoffset);
+    var endtime = getTimeFromMinutes(0);
+    var id = "utetemperatur";
+
+    $.getJSON("GetChartData", {
+        startDate: starttime,
+        endDate: endtime,
+        id: id
+    }, function (data) {
+    });
+</script>

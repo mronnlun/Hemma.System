@@ -9,6 +9,19 @@
     return vars;
 }
 
+function addSeconds(time, seconds) {
+    var milliseconds = seconds * 1000;
+    var newTime = new Date();
+    newTime.setTime(time.getTime() + milliseconds);
+    return newTime;
+}
+
+function getTimeFromMinutes(minutes) {
+    var startTime = addSeconds(new Date(), -1 * minutes * 60);
+    return startTime;
+}
+
+
 Handlebars.registerHelper('dateFormat', function (context, block) {
     if (window.moment) {
         var f = block.hash.format || "D.M.YYYY H:mm";

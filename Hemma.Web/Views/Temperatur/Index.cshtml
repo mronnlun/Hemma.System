@@ -89,7 +89,7 @@
             $("#last-value-date").text(formattedDate);
         });
 
-        var startTime = thingSpeak.getTimeFromMinutes(starttimeoffset);
+        var startTime = getTimeFromMinutes(starttimeoffset);
 
         thingSpeak.getData(startTime, setChartData, setChartFailed);
 
@@ -166,7 +166,7 @@
         $("#rawdata").empty();
         $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
         
-        var startTime = thingSpeak.getTimeFromMinutes(60 * 24 * 180);
+        var startTime = getTimeFromMinutes(60 * 24 * 180);
         
         thingSpeak.getData(startTime,
             function (data) {

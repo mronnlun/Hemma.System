@@ -27,6 +27,7 @@
                     <ul class="nav navbar-nav">
                         <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Belysning" ? "active" : "")">@Html.ActionLink("Belysning", "Index", "Belysning")</li>
                         <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Temperatur" ? "active" : "")">@Html.ActionLink("Temperatur", "Index", "Temperatur")</li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Nibe" ? "active" : "")">@Html.ActionLink("Värmepump", "Index", "Nibe")</li>
                         @if (Context.User.Identity.IsAuthenticated == true)
                         {
                             <li>@Html.ActionLink("Log out", "Logout", "Account")</li>
