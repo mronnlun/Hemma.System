@@ -35,10 +35,10 @@
     var endtime = getTimeFromMinutes(0);
     var id = "utetemperatur";
 
-    $.getJSON("GetChartData", {
-        startDate: starttime,
-        endDate: endtime,
+    $.getJSON("/api/NibeData/GetChartData", {
+        millisecondOffset: 10000000,
         id: id
     }, function (data) {
+        console.log(data);
     });
 </script>

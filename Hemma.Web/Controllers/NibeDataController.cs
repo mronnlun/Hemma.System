@@ -24,7 +24,13 @@ namespace Hemma.Web.Controllers
 
             var collection = database.GetCollection<NibeData>("Data");
 
-            var data = collection.AsQueryable().Where(item => item.Timestamp > startDate.Ticks && item.Timestamp < endDate.Ticks);
+            var data = from item in collection.AsQueryable()
+                       where item.Timestamp > startDate.Ticks && item.Timestamp < endDate.Ticks
+                       select new
+                       {
+                           item.Timestamp,
+                           item.Utetemperatur
+                       };
 
             var selectedItems = new List<List<object>>();
             foreach (var item in data.ToList())

@@ -34,12 +34,19 @@ namespace Hemma.RothLogger
             var xml = XDocument.Parse(text);
             var rothData = new RothData();
             rothData.Vardagsrum = GetRoomValue(xml, "G0.RaumTemp");
+            rothData.VardagsrumSetting = GetRoomValue(xml, "G0.SollTemp");
             rothData.Hallen = GetRoomValue(xml, "G1.RaumTemp");
+            rothData.HallenSetting = GetRoomValue(xml, "G1.SollTemp");
             rothData.Lekrum = GetRoomValue(xml, "G2.RaumTemp");
+            rothData.LekrumSetting = GetRoomValue(xml, "G2.SollTemp");
             rothData.MammasPappas = GetRoomValue(xml, "G3.RaumTemp");
+            rothData.MammasPappasSetting = GetRoomValue(xml, "G3.SollTemp");
             rothData.Viggo = GetRoomValue(xml, "G4.RaumTemp");
+            rothData.ViggoSetting = GetRoomValue(xml, "G4.SollTemp");
             rothData.Felix = GetRoomValue(xml, "G5.RaumTemp");
+            rothData.FelixSetting = GetRoomValue(xml, "G5.SollTemp");
             rothData.Arbetsrum = GetRoomValue(xml, "G6.RaumTemp");
+            rothData.ArbetsrumSetting = GetRoomValue(xml, "G6.SollTemp");
             rothData.Timestamp = DateTime.Now.Ticks;
 
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
