@@ -1,69 +1,46 @@
-﻿using KNXLib;
+﻿using Hemma.Web.Models;
+using KNXLib;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
+using System.Xml.Serialization;
 
 namespace Hemma.Web.Controllers
 {
+    [SessionState(System.Web.SessionState.SessionStateBehavior.Disabled)]
     public class BelysningController : Controller
     {
         [Authorize]
         public ActionResult Index()
         {
-            return View(settings);
+            return View(GetSettings());
         }
 
-        static IEnumerable<Setting> settings = GetSettings();
+        static XmlSerializer serializer = new XmlSerializer(typeof(List<LightSetting>));
 
-        private static IEnumerable<Setting> GetSettings()
+        static readonly object settingsFileLock = new object();
+
+        private IEnumerable<LightSetting> GetSettings()
         {
-            var settings = new List<Setting>();
-            settings.Add(new Setting()
+            List<LightSetting> settings = null;
+            lock (settingsFileLock)
             {
-                Room = "Arbetsrum",
-                Lampa = "Taklampa",
-                Adresser = new List<string>() { "1/0/9", "1/0/8" },
-                StatusAddress = "1/0/9"
+                using (var file = new FileStream("Belysning.config", FileMode.Open))
+                {
+                    settings = serializer.Deserialize(file) as List<LightSetting>;
+                }
+            }
+            var orderedSettings = settings.OrderBy(item => item.Room).ThenBy(item => item.Lampa);
 
-            });
-
-            settings.Add(new Setting()
-            {
-                Room = "Kök",
-                Lampa = "Bänk",
-                Adresser = new List<string>() { "1/0/5", "1/0/4" },
-                StatusAddress = "1/0/5"
-            });
-
-            settings.Add(new Setting()
-            {
-                Room = "Kök",
-                Lampa = "Matplats",
-                Adresser = new List<string>() { "1/1/8" },
-                StatusAddress = "1/1/8"
-            });
-
-            settings.Add(new Setting()
-            {
-                Room = "Utebelysning",
-                Lampa = "Baksida",
-                Adresser = new List<string>() { "1/0/16", "1/0/17" },
-                StatusAddress = "1/0/17"
-            });
-            settings.Add(new Setting()
-            {
-                Room = "Utebelysning",
-                Lampa = "Terass",
-                Adresser = new List<string>() { "1/0/10", "1/0/11" },
-                StatusAddress = "1/0/11"
-            });
-
-            return settings;
+            return orderedSettings;
         }
+
 
         private static readonly object knxLock = new object();
 
@@ -71,6 +48,10 @@ namespace Hemma.Web.Controllers
         [HttpGet]
         public void UpdateLightStatus()
         {
+            foreach (var key in HttpContext.Application.AllKeys)
+                if (key.StartsWith("LightStatus_", StringComparison.InvariantCulture))
+                    HttpContext.Application.Remove(key);
+
             lock (knxLock)
             {
                 var localAddress = ConfigurationManager.AppSettings["localAddress"];
@@ -84,13 +65,24 @@ namespace Hemma.Web.Controllers
                     connection.KnxStatusDelegate += ReceiveKnxStatus;
                     connection.Connect();
                     Thread.Sleep(500);
-                    foreach (var setting in GetSettings())
+                    var settings = GetSettings();
+                    foreach (var setting in settings)
                     {
                         connection.RequestStatus(setting.StatusAddress);
                         Thread.Sleep(100);
                     }
-                    //Wait 5 seconds so statuses can update
-                    Thread.Sleep(5000);
+
+                    //Wait max 15 seconds so statuses can update
+                    for (int i = 0; i < 60; i++)
+                    {
+                        var receivedSettingsCount = HttpContext.Application.AllKeys.Count(item => item.StartsWith("LightStatus_", StringComparison.CurrentCulture));
+                        Debug.WriteLine("i: " + i.ToString() + " Received settings count: " + receivedSettingsCount);
+
+                        if (settings.Count() == receivedSettingsCount)
+                            break;
+                        else
+                            Thread.Sleep(1000);
+                    }
                 }
                 finally
                 {
@@ -101,25 +93,41 @@ namespace Hemma.Web.Controllers
 
         }
 
+        private void ReceiveKnxStatus(string address, byte[] state)
+        {
+            Debug.WriteLine("ReceiveKnxStatus: " + address);
+            if (state != null && state.Length > 0 && state[0] == 1)
+                HttpContext.Application["LightStatus_" + address] = "on";
+            else
+                HttpContext.Application["LightStatus_" + address] = "off";
+        }
+
         [Authorize]
         [HttpPost]
         public JsonResult GetLightStatus(string room, string lampa)
         {
-            var setting = settings.FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
+            var setting = GetSettings().FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
                 item.Lampa.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
 
             string state = null;
             if (setting != null)
             {
 
-                var until = DateTime.Now.AddSeconds(5);
+                var until = DateTime.Now.AddSeconds(60);
                 while (DateTime.Now < until)
                 {
                     state = HttpContext.Application["LightStatus_" + setting.StatusAddress] as string;
                     if (state != null)
+                    {
+                        Debug.WriteLine("Got status: " + setting.StatusAddress);
                         break;
+                    }
+                    Thread.Sleep(100);
                 }
             }
+
+            if (state == null)
+                Debug.WriteLine("Exited without value: " + setting.StatusAddress);
 
             return Json(new
             {
@@ -130,19 +138,11 @@ namespace Hemma.Web.Controllers
         }
 
 
-        private void ReceiveKnxStatus(string address, byte[] state)
-        {
-            if (state != null && state.Length > 0 && state[0] == 1)
-                HttpContext.Application["LightStatus_" + address] = "on";
-            else
-                HttpContext.Application["LightStatus_" + address] = "off";
-        }
-
         [Authorize]
         [HttpPost]
         public JsonResult Ändra(string room, string lampa, string state)
         {
-            var setting = settings.FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
+            var setting = GetSettings().FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
                 item.Lampa.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
             if (setting != null)
             {
@@ -162,9 +162,25 @@ namespace Hemma.Web.Controllers
                         connection.KnxStatusDelegate += KnxStatusEvent;
                         connection.Connect();
                         Thread.Sleep(100);
-                        var value = (state.ToLower() == "on" ? true : false);
-                        foreach (var adress in setting.Adresser)
-                            connection.Action(adress, value);
+
+                        foreach (var address in setting.Addresses)
+                        {
+                            if (address.OnValue == 1)
+                            {
+                                var value = (state.ToLower() == "on" ? true : false);
+                                //Only allow change if trying to turn off or the light is allowed to be turned on 
+                                if (value == false || setting.CanTurnOn)
+                                    connection.Action(address.Address, value);
+                            }
+                            else if (address.OnValue > 1)
+                            {
+                                var value = (state.ToLower() == "on" ? address.OnValue : 0);
+                                //Only allow change if trying to turn off or the light is allowed to be turned on 
+                                if (value == 0 || setting.CanTurnOn)
+                                    connection.Action(address.Address, value);
+                            }
+
+                        }
                         Thread.Sleep(100);
                     }
                     finally
@@ -177,13 +193,6 @@ namespace Hemma.Web.Controllers
             return Json("");
         }
 
-        public class Setting
-        {
-            public string Room { get; set; }
-            public string Lampa { get; set; }
-            public IEnumerable<string> Adresser { get; set; }
-            public string StatusAddress { get; internal set; }
-        }
 
         private static void KnxConnected()
         {
