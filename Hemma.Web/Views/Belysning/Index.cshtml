@@ -46,7 +46,7 @@
             var roomValue = $(value).attr('data-room');
             var lampaValue = $(value).attr('data-lampa');
 
-            $.post('@Url.Action("GetLightStatus")', {
+            $.get('@Url.Action("GetLightStatus")', {
                 room: roomValue,
                 lampa: lampaValue
             }, function (data, textStatus) {

@@ -64,16 +64,16 @@ namespace Hemma.Web.Controllers
                 {
                     connection.KnxStatusDelegate += ReceiveKnxStatus;
                     connection.Connect();
-                    Thread.Sleep(500);
+                    Wait(500);
                     var settings = GetSettings();
                     foreach (var setting in settings)
                     {
                         connection.RequestStatus(setting.StatusAddress);
-                        Thread.Sleep(100);
+                        Wait(100);
                     }
 
-                    //Wait max 15 seconds so statuses can update
-                    for (int i = 0; i < 60; i++)
+                    //Wait so statuses can update
+                    for (int i = 0; i < 30; i++)
                     {
                         var receivedSettingsCount = HttpContext.Application.AllKeys.Count(item => item.StartsWith("LightStatus_", StringComparison.CurrentCulture));
                         Debug.WriteLine("i: " + i.ToString() + " Received settings count: " + receivedSettingsCount);
@@ -81,7 +81,7 @@ namespace Hemma.Web.Controllers
                         if (settings.Count() == receivedSettingsCount)
                             break;
                         else
-                            Thread.Sleep(1000);
+                            Wait(1000);
                     }
                 }
                 finally
@@ -91,6 +91,17 @@ namespace Hemma.Web.Controllers
                 }
             }
 
+        }
+
+        private void Wait(int milliseconds)
+        {
+            Thread.Sleep(milliseconds);
+            //long qwe = 0;
+            //var until = DateTime.Now.AddMilliseconds(milliseconds);
+            //while (DateTime.Now < until)
+            //{
+            //    qwe = DateTime.Now.Ticks + 1;
+            //}
         }
 
         private void ReceiveKnxStatus(string address, byte[] state)
@@ -103,9 +114,11 @@ namespace Hemma.Web.Controllers
         }
 
         [Authorize]
-        [HttpPost]
+        [HttpGet]
         public JsonResult GetLightStatus(string room, string lampa)
         {
+            Debug.WriteLine(room + " " + lampa);
+
             var setting = GetSettings().FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
                 item.Lampa.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
 
@@ -113,28 +126,29 @@ namespace Hemma.Web.Controllers
             if (setting != null)
             {
 
-                var until = DateTime.Now.AddSeconds(60);
+                var until = DateTime.Now.AddSeconds(30);
                 while (DateTime.Now < until)
                 {
                     state = HttpContext.Application["LightStatus_" + setting.StatusAddress] as string;
                     if (state != null)
                     {
-                        Debug.WriteLine("Got status: " + setting.StatusAddress);
+                        Debug.WriteLine("Got status: " + setting.Room + " " + setting.Lampa);
                         break;
                     }
-                    Thread.Sleep(100);
+
+                    Wait(100);
                 }
             }
 
             if (state == null)
-                Debug.WriteLine("Exited without value: " + setting.StatusAddress);
+                Debug.WriteLine("Exited without value: " + setting.Room + " " + setting.Lampa);
 
             return Json(new
             {
                 room = room,
                 lampa = lampa,
                 state = (!string.IsNullOrWhiteSpace(state) ? state : "off")
-            });
+            }, JsonRequestBehavior.AllowGet);
         }
 
 
@@ -161,7 +175,7 @@ namespace Hemma.Web.Controllers
                         connection.KnxEventDelegate += KnxEvent;
                         connection.KnxStatusDelegate += KnxStatusEvent;
                         connection.Connect();
-                        Thread.Sleep(100);
+                        Wait(100);
 
                         foreach (var address in setting.Addresses)
                         {
@@ -181,7 +195,7 @@ namespace Hemma.Web.Controllers
                             }
 
                         }
-                        Thread.Sleep(100);
+                        Wait(100);
                     }
                     finally
                     {
