@@ -31,7 +31,8 @@ namespace Hemma.Web.Controllers
             List<LightSetting> settings = null;
             lock (settingsFileLock)
             {
-                using (var file = new FileStream("Belysning.config", FileMode.Open))
+                var filePath = Server.MapPath("~/Belysning.config");
+                using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
                     settings = serializer.Deserialize(file) as List<LightSetting>;
                 }

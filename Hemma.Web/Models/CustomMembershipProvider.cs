@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -182,8 +183,12 @@ namespace Hemma.Web.Models
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 return false;
 
-            if (username.Equals("", StringComparison.CurrentCultureIgnoreCase) &&
-                password.Equals("", StringComparison.CurrentCultureIgnoreCase))
+            var registryContainer = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Nanocon\\");
+            var correctusername = registryContainer.GetValue("HemmaUsername")?.ToString();
+            var correctpassword = registryContainer.GetValue("HemmaPassword")?.ToString();
+
+            if (username.Equals(correctusername, StringComparison.CurrentCultureIgnoreCase) &&
+                password.Equals(correctpassword, StringComparison.CurrentCultureIgnoreCase))
                 return true;
 
             return false;

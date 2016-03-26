@@ -151,10 +151,10 @@
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>
-    <None Include="Belysning.config">
+    <Content Include="Belysning.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
-    </None>
+    </Content>
     <None Include="Properties\PublishProfiles\Hemmaserver.pubxml" />
     <Content Include="Views\Nibe\Index.cshtml" />
     <None Include="Web.Debug.config">
