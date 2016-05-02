@@ -17,6 +17,17 @@ namespace Hemma.Web.Controllers
             return GetChartData(DateTime.Now.AddMilliseconds(millisecondOffset * -1), DateTime.Now, id);
         }
 
+        internal decimal GetLatestValue(string id)
+        {
+            var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
+            var database = mongoclient.GetDatabase("Nibe");
+
+            var collection = database.GetCollection<NibeData>("Data");
+
+            return collection.AsQueryable().OrderByDescending(item => item.Timestamp).FirstOrDefault().Utetemperatur;
+
+        }
+
         private List<List<object>> GetChartData(DateTime startDate, DateTime endDate, string id)
         {
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));

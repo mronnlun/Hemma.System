@@ -134,8 +134,10 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\BelysningController.cs" />
+    <Compile Include="Controllers\InomhusController.cs" />
     <Compile Include="Controllers\NibeController.cs" />
     <Compile Include="Controllers\NibeDataController.cs" />
+    <Compile Include="Controllers\UtomhusTemperaturController.cs" />
     <Compile Include="Models\CustomMembershipProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\TemperaturController.cs" />
@@ -157,6 +159,7 @@
     </Content>
     <None Include="Properties\PublishProfiles\Hemmaserver.pubxml" />
     <Content Include="Views\Nibe\Index.cshtml" />
+    <Content Include="Views\UtomhusTemperatur\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -166,6 +169,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\Inomhus\" />
+    <Folder Include="Views\Utomhus\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CumpsD\knx.net\src\KNXLib\KNXLib.csproj">
