@@ -135,6 +135,7 @@ namespace Hemma.NibeScreenScraper
             //    newDatas.Add(newdata);
             //}
             //datas.InsertMany(newDatas);
+
         }
 
         static char[] allowedChars = "0123456789,.-".ToCharArray();

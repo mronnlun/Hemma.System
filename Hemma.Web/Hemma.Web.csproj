@@ -133,6 +133,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AnalysisController.cs" />
     <Compile Include="Controllers\Api\ArrayInputAttribute.cs" />
     <Compile Include="Controllers\Api\v1\DataController.cs" />
     <Compile Include="Controllers\BelysningController.cs" />
@@ -162,6 +163,7 @@
     <None Include="Properties\PublishProfiles\Hemmaserver.pubxml" />
     <Content Include="Views\Nibe\Index.cshtml" />
     <Content Include="Views\UtomhusTemperatur\Index.cshtml" />
+    <Content Include="Views\Analysis\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

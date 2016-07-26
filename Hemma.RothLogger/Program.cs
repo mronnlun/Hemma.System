@@ -58,6 +58,35 @@ namespace Hemma.RothLogger
             var datas = database.GetCollection<RothData>("LoggedData");
             datas.InsertOne(rothData);
 
+            //var oldDataColl = database.GetCollection<Hemma.Entities.v1.RothData>("Data");
+            //var oldDatas = oldDataColl.AsQueryable().ToList();
+            //var newDatas = new List<RothData>();
+            //foreach (var oldItem in oldDatas)
+            //{
+            //    var newdata = new RothData();
+            //    var stamp = new DateTime(oldItem.Timestamp);
+            //    newdata.Datestamp = stamp;
+            //    newdata.Arbetsrum = Convert.ToDouble(oldItem.Arbetsrum);
+            //    newdata.ArbetsrumSetting = Convert.ToDouble(oldItem.ArbetsrumSetting);
+            //    newdata.Felix = Convert.ToDouble(oldItem.Felix);
+            //    newdata.FelixSetting = Convert.ToDouble(oldItem.FelixSetting);
+            //    newdata.Hallen = Convert.ToDouble(oldItem.Hallen);
+            //    newdata.HallenSetting = Convert.ToDouble(oldItem.HallenSetting);
+            //    newdata.Lekrum = Convert.ToDouble(oldItem.Lekrum);
+            //    newdata.LekrumSetting = Convert.ToDouble(oldItem.LekrumSetting);
+            //    newdata.MammasPappas = Convert.ToDouble(oldItem.MammasPappas);
+            //    newdata.MammasPappasSetting = Convert.ToDouble(oldItem.MammasPappasSetting);
+            //    newdata.Timestamp = oldItem.Timestamp;
+            //    newdata.Vardagsrum = Convert.ToDouble(oldItem.Vardagsrum);
+            //    newdata.VardagsrumSetting = Convert.ToDouble(oldItem.VardagsrumSetting);
+            //    newdata.Viggo = Convert.ToDouble(oldItem.Viggo);
+            //    newdata.ViggoSetting = Convert.ToDouble(oldItem.ViggoSetting);
+
+
+            //    newDatas.Add(newdata);
+            //}
+            //datas.InsertMany(newDatas);
+
         }
 
         private static double GetRoomValue(XDocument xml, string roomId)

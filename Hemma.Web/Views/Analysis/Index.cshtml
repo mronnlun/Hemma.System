@@ -1,0 +1,89 @@
+﻿
+@{
+    ViewBag.Title = "Analysis";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div id="chart-container" class="block-center">
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
+        <div class="btn-group">
+            <label><input type="checkbox" class="dataseries" name="Utetemperatur" value="Utetemperatur" data-db="Nibe" />Utetemperatur</label>
+            <label><input type="checkbox" class="dataseries" name="Viggo" value="Viggo" data-db="Roth" />Viggos rum</label>
+            <label><input type="checkbox" class="dataseries" name="Felix" value="Felix" data-db="Roth" />Felix rum</label>
+        </div>
+    </div>
+</div>
+
+@*<div class="row">
+        <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
+            <div class="btn-group">
+                <a class="settime btn btn-default settime-60" href="#" onclick="return setData(60)">60 min</a>
+                <a class="settime btn btn-default settime-1440" href="#" onclick="return setData(1440)">24 h</a>
+                <a class="settime btn btn-default settime-10080" href="#" onclick="return setData(10080)">7 d</a>
+                <a class="settime btn btn-default settime-40320" href="#" onclick="return setData(40320)">28 d</a>
+            </div>
+        </div>
+    </div>
+    <hr />*@
+
+<script src="http://code.highcharts.com/4/highcharts.js"></script>
+<script src="http://code.highcharts.com/4/modules/exporting.js"></script>
+<script type="text/javascript">
+
+    $(".dataseries").change(function () {
+        var checkbox = $(this);
+        if ($(this).is(":checked")) {
+            var database = checkbox.attr("data-db");
+            var field = checkbox.val();
+            addSeries(database, field);
+        }
+
+    });
+
+    initializeChart();
+
+    var url = '@Url.RouteUrl("DefaultApi", new { httproute = "", controller = "Data",
+              action = "GetTimestampValues", secondOffset= 500000 })';
+
+    function addSeries(database, field) {
+        $.getJSON(url, {
+            databaseName: database,
+            field: field
+        }, function (data) {
+            var chart = $('#chart-container').highcharts();
+            chart.addSeries({
+                name: field,
+                data: data
+            });
+        });
+    }
+
+    function initializeChart() {
+
+        var chartOptions = {
+            title: {
+                text: 'Data'
+            },
+            chart: {
+                zoomType: $(window).width() < 750 ? 'none ' : 'x',
+                pinchType: 'none'
+            },
+            colors: ['#1111ee', '#222222'],
+            xAxis: {
+                type: 'datetime',
+                title: {
+                    text: 'Datum'
+                }
+            }
+        };
+        // draw the chart
+        $("#chart-container").highcharts(chartOptions);
+    }
+
+
+</script>
