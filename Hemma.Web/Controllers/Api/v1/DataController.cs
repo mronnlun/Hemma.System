@@ -13,18 +13,18 @@ namespace Hemma.Web.Controllers.Api.v1
     public class DataController : ApiController
     {
         [ArrayInput("fields")]
-        public IEnumerable<IEnumerable<KeyValuePair<string, object>>> Get(string databaseName, int millisecondOffset, string[] fields)
+        public IEnumerable<IEnumerable<KeyValuePair<string, object>>> Get(string databaseName, string[] fields, int secondOffset = 3600, bool includeKey = false)
         {
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
             var database = mongoclient.GetDatabase(databaseName);
 
-            var collection = database.GetCollection<BsonDocument>("Data");
+            var collection = database.GetCollection<BsonDocument>("LoggedData");
 
-            var startTime = DateTime.Now.AddMilliseconds(millisecondOffset * -1).Ticks;
+            var startTime = DateTime.Now.AddSeconds(secondOffset * -1).Ticks;
             var endTime = DateTime.Now.Ticks;
 
             var builder = Builders<BsonDocument>.Filter;
-            var filter = builder.Gte("_id", startTime) & builder.Lte("_id", endTime);
+            var filter = builder.Gte("Timestamp", startTime) & builder.Lte("Timestamp", endTime);
 
             ProjectionDefinition<BsonDocument> projection = null;
 
@@ -61,11 +61,20 @@ namespace Hemma.Web.Controllers.Api.v1
                         itemValue = element.Value.AsInt32;
                     else if (element.Value.IsInt64)
                         itemValue = element.Value.AsInt64;
+                    else if (element.Value.IsBoolean)
+                        itemValue = element.Value.AsBoolean;
+                    else if (element.Value.IsDouble)
+                        itemValue = element.Value.AsDouble;
                     else if (element.Value.IsValidDateTime)
                         itemValue = element.Value.ToLocalTime();
+                    else if (includeKey && element.Value.IsObjectId)
+                        itemValue = element.Value.AsObjectId.ToString();
 
-                    var keyValue = new KeyValuePair<string, object>(element.Name, itemValue);
-                    values.Add(keyValue);
+                    if (itemValue != null)
+                    {
+                        var keyValue = new KeyValuePair<string, object>(element.Name, itemValue);
+                        values.Add(keyValue);
+                    }
                 }
                 selectedItems.Add(values);
             }

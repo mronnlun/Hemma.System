@@ -1,6 +1,7 @@
 ﻿using Hemma.Entities;
 using Hemma.Entities.v2;
 using HtmlAgilityPack;
+using Microsoft.Win32;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,14 @@ namespace Hemma.NibeScreenScraper
         {
             var rawHtml = "";
 
+            var registryContainer = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Nanocon\\");
+            var correctusername = registryContainer.GetValue("NibeUsername")?.ToString();
+            var correctpassword = registryContainer.GetValue("NibePassword")?.ToString();
+
             using (var webclient = new CookieAwareWebClient())
             {
-                var values = new NameValueCollection { { "Email", "mathias.ronnlund@gmail.com" },
-                    { "Password", "" }
+                var values = new NameValueCollection { { "Email", correctusername },
+                    { "Password", correctpassword }
                 };
 
                 webclient.Encoding = Encoding.UTF8;
@@ -75,7 +80,7 @@ namespace Hemma.NibeScreenScraper
                 {
                     case "string":
                         break;
-                    case "decimal":
+                    case "double":
                         dataProperty.Value.SetValue(nibeData, number);
                         break;
                     case "int32":
@@ -93,15 +98,52 @@ namespace Hemma.NibeScreenScraper
 
             var datas = database.GetCollection<NibeData>("LoggedData");
             datas.InsertOne(nibeData);
+
+
+            //var oldDataColl = database.GetCollection<Hemma.Entities.v1.NibeData>("Data");
+            //var oldDatas = oldDataColl.AsQueryable().ToList();
+            //var newDatas = new List<NibeData>();
+            //foreach (var oldItem in oldDatas)
+            //{
+            //    var newdata = new NibeData();
+            //    var stamp = new DateTime(oldItem.Timestamp);
+            //    newdata.Datestamp = stamp;
+            //    newdata.EffektEltillsats = Convert.ToDouble(oldItem.EffektEltillsats);
+            //    newdata.GarageBeräknadFramledningstemp = Convert.ToDouble(oldItem.GarageBeräknadFramledningstemp);
+            //    newdata.GarageFramledningstemp = Convert.ToDouble(oldItem.GarageFramledningstemp);
+            //    newdata.GarageReturtemp = Convert.ToDouble(oldItem.GarageReturtemp);
+            //    newdata.Gradminuter = Convert.ToDouble(oldItem.Gradminuter);
+            //    newdata.Hetgas = Convert.ToDouble(oldItem.Hetgas);
+            //    newdata.InneBeräknadFramledningstemp = Convert.ToDouble(oldItem.InneBeräknadFramledningstemp);
+            //    newdata.InneFramledningstemp = Convert.ToDouble(oldItem.InneFramledningstemp);
+            //    newdata.InneReturtemp = Convert.ToDouble(oldItem.InneReturtemp);
+            //    newdata.KompressorDifttid = Convert.ToDouble(oldItem.KompressorDifttid);
+            //    newdata.KompressorDrifttidVarmvatten = Convert.ToDouble(oldItem.KompressorDrifttidVarmvatten);
+            //    newdata.Kompressorstarter = oldItem.Kompressorstarter;
+            //    newdata.KondensorFram = Convert.ToDouble(oldItem.KondensorFram);
+            //    newdata.KöldbärareIn = Convert.ToDouble(oldItem.KöldbärareIn);
+            //    newdata.KöldbärareUt = Convert.ToDouble(oldItem.KöldbärareUt);
+            //    newdata.KöldbärarPumphastiget = Convert.ToDouble(oldItem.KöldbärarPumphastiget);
+            //    newdata.Suggas = Convert.ToDouble(oldItem.Suggas);
+            //    newdata.Tidfaktor = Convert.ToDouble(oldItem.Tidfaktor);
+            //    newdata.Timestamp = oldItem.Timestamp;
+            //    newdata.Utetemperatur = Convert.ToDouble(oldItem.Utetemperatur);
+            //    newdata.VarmvattenLaddning = Convert.ToDouble(oldItem.VarmvattenLaddning);
+            //    newdata.VarmvattenTopp = Convert.ToDouble(oldItem.VarmvattenTopp);
+            //    newdata.VärmebärarPumphastiget = Convert.ToDouble(oldItem.VärmebärarPumphastiget);
+            //    newdata.Vätskeledning = Convert.ToDouble(oldItem.Vätskeledning);
+            //    newDatas.Add(newdata);
+            //}
+            //datas.InsertMany(newDatas);
         }
 
         static char[] allowedChars = "0123456789,.-".ToCharArray();
 
-        private static decimal GetNumber(string input)
+        private static double GetNumber(string input)
         {
             var parsedInput = new string(input.Where(c => allowedChars.Contains(c)).ToArray()).Replace(".", ",");
-            decimal number;
-            if (decimal.TryParse(parsedInput, out number))
+            double number;
+            if (double.TryParse(parsedInput, out number))
                 return number;
             else
                 return 0;

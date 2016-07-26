@@ -13,7 +13,7 @@ namespace Hemma.Web.Controllers
         public ActionResult Index()
         {
             var data = new NibeDataController();
-            decimal value = data.GetLatestValue("utetemperatur");
+            var value = data.GetLatestValue("utetemperatur");
             return View(value);
         }
     }
