@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Hemma.Entities
+namespace Hemma.Entities.v1
 {
-    public class NibeData
+    public class NibeData : IData
     {
         [BsonId]
         public long Timestamp { get; set; }

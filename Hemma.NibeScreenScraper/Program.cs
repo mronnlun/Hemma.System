@@ -1,4 +1,5 @@
 ﻿using Hemma.Entities;
+using Hemma.Entities.v2;
 using HtmlAgilityPack;
 using MongoDB.Driver;
 using System;
@@ -33,7 +34,10 @@ namespace Hemma.NibeScreenScraper
             }
 
             var nibeData = new NibeData();
-            nibeData.Timestamp = DateTime.Now.Ticks;
+            var now = DateTime.Now;
+            nibeData.Timestamp = now.Ticks;
+            nibeData.Datestamp = now;
+
             var dataProperties = new Dictionary<string, PropertyInfo>();
             foreach (var property in nibeData.GetType().GetProperties())
             {
@@ -87,7 +91,7 @@ namespace Hemma.NibeScreenScraper
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
             var database = mongoclient.GetDatabase("Nibe");
 
-            var datas = database.GetCollection<NibeData>("Data");
+            var datas = database.GetCollection<NibeData>("LoggedData");
             datas.InsertOne(nibeData);
         }
 

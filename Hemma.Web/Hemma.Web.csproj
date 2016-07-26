@@ -133,10 +133,12 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\Api\ArrayInputAttribute.cs" />
+    <Compile Include="Controllers\Api\v1\DataController.cs" />
     <Compile Include="Controllers\BelysningController.cs" />
     <Compile Include="Controllers\InomhusController.cs" />
     <Compile Include="Controllers\NibeController.cs" />
-    <Compile Include="Controllers\NibeDataController.cs" />
+    <Compile Include="Controllers\Api\v1\NibeDataController.cs" />
     <Compile Include="Controllers\UtomhusTemperaturController.cs" />
     <Compile Include="Models\CustomMembershipProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />

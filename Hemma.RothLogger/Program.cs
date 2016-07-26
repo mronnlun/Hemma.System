@@ -1,4 +1,5 @@
 ﻿using Hemma.Entities;
+using Hemma.Entities.v2;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -47,17 +48,19 @@ namespace Hemma.RothLogger
             rothData.FelixSetting = GetRoomValue(xml, "G5.SollTemp");
             rothData.Arbetsrum = GetRoomValue(xml, "G6.RaumTemp");
             rothData.ArbetsrumSetting = GetRoomValue(xml, "G6.SollTemp");
-            rothData.Timestamp = DateTime.Now.Ticks;
+            var now = DateTime.Now;
+            rothData.Timestamp = now.Ticks;
+            rothData.Datestamp = now;
 
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
             var database = mongoclient.GetDatabase("Roth");
 
-            var datas = database.GetCollection<RothData>("Data");
+            var datas = database.GetCollection<RothData>("LoggedData");
             datas.InsertOne(rothData);
 
         }
 
-        private static decimal GetRoomValue(XDocument xml, string roomId)
+        private static double GetRoomValue(XDocument xml, string roomId)
         {
             var textvalue = (from item in xml.Descendants("i")
                              where item.Descendants("n").First().Value.Equals(roomId)
@@ -67,7 +70,7 @@ namespace Hemma.RothLogger
             if (!int.TryParse(textvalue, out number))
                 return 0;
 
-            var dec = Decimal.Divide(number, 100);
+            var dec = number / 100D;
 
             return Math.Round(dec, 1);
         }
