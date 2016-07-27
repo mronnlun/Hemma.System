@@ -11,14 +11,35 @@
 </div>
 <div class="row">
     <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
-        <div class="btn-group">
-            <label><input type="checkbox" class="dataseries" value="Utetemperatur" data-db="Nibe" />Utetemperatur</label>
-            <label><input type="checkbox" class="dataseries" value="Viggo" data-db="Roth" />Viggos rum</label>
-            <label><input type="checkbox" class="dataseries" value="Felix" data-db="Roth" />Felix rum</label>
-            <label><input type="checkbox" class="dataseries" value="Arbetsrum" data-db="Roth" />Arbetsrummet</label>
-            <label><input type="checkbox" class="dataseries" value="ArbetsrumSetting" data-db="Roth" />Arbetsrummet inställning</label>
-            <label><input type="checkbox" class="dataseries" value="Vardagsrum" data-db="Roth" />Vardagsrummet</label>
-        </div>
+        <form>
+            <div class="checkbox">
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Utetemperatur" data-db="Nibe" />Utetemperatur</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Arbetsrum" data-db="Roth" />Arbetsrum</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="ArbetsrumSetting" data-db="Roth" />Arbetsrum inst</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Vardagsrum" data-db="Roth" />Vardagsrum</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="VardagsrumSetting" data-db="Roth" />Vardagsrum inst</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Hallen" data-db="Roth" />Hallen</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="HallenSetting" data-db="Roth" />Hallen inst</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Lekrum" data-db="Roth" />Lekrum</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="LekrumSetting" data-db="Roth" />Lekrum inst</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="MammasPappas" data-db="Roth" />Mammas o Pappas</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="MammasPappasSetting" data-db="Roth" />Mamma o Pappas inst</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Viggo" data-db="Roth" />Viggos rum</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="ViggoSetting" data-db="Roth" />Viggos rum inst</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Felix" data-db="Roth" />Felix rum</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="FelixSetting" data-db="Roth" />Felix rum inst</label>
+                <hr />
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="Kompressorstarter" data-db="Nibe" />Kompressorstarter</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="KompressorDifttid" data-db="Nibe" />Kompressor drifttid</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="KompressorDrifttidVarmvatten" data-db="Nibe" />Kompressor drifttid varmvatten</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="InneFramledningstemp" data-db="Nibe" />Framledningstemp</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="InneReturtemp" data-db="Nibe" />Returtemp</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="InneBeräknadFramledningstemp" data-db="Nibe" />Beräknad framledningstemp</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="GarageFramledningstemp" data-db="Nibe" />Garage framledningstemp</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="GarageReturtemp" data-db="Nibe" />Garage returtemp</label>
+                <label class="input-lg"><input type="checkbox" class="dataseries" value="GarageBeräknadFramledningstemp" data-db="Nibe" />Garage beräknad framledningstemp</label>
+            </div>
+        </form>
     </div>
 </div>
 <div class="row">
@@ -26,10 +47,13 @@
         <div class="btn-group">
             <a class="settimespan btn btn-default" href="#" data-timespan="3600">60 min</a>
             <a class="settimespan btn btn-default" href="#" data-timespan="86400">24 h</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="259200">3 d</a>
             <a class="settimespan btn btn-default active" href="#" data-timespan="604800">7 d</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="1209600">14 d</a>
             <a class="settimespan btn btn-default" href="#" data-timespan="2592000">30 d</a>
             <a class="settimespan btn btn-default" href="#" data-timespan="7776000">3 mån</a>
             <a class="settimespan btn btn-default" href="#" data-timespan="15552000">6 mån</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="31536000">12 mån</a>
         </div>
     </div>
 </div>

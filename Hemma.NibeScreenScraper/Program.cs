@@ -20,8 +20,17 @@ namespace Hemma.NibeScreenScraper
             var rawHtml = "";
 
             var registryContainer = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Nanocon\\");
+            if (registryContainer == null)
+            {
+                var hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                registryContainer = hklm.OpenSubKey(@"SOFTWARE\\Nanocon\\");
+            }
+
             var correctusername = registryContainer.GetValue("NibeUsername")?.ToString();
             var correctpassword = registryContainer.GetValue("NibePassword")?.ToString();
+
+            if (registryContainer != null)
+                registryContainer.Dispose();
 
             using (var webclient = new CookieAwareWebClient())
             {

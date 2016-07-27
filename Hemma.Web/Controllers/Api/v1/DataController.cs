@@ -114,6 +114,16 @@ namespace Hemma.Web.Controllers.Api.v1
 
             var result = find.ToList();
 
+            result.RemoveAll(item =>
+            {
+                var value = item.GetElement(2).Value;
+                if ((value.IsDouble && value.AsDouble.Equals(0)) || (value.IsInt32 && value.AsInt32.Equals(0)) ||
+                (value.IsInt64 && value.AsInt64.Equals(0)))
+                    return true;
+                else
+                    return false;
+            });
+
             if (removeConsecutiveValues)
             {
                 int i = 1;
@@ -125,8 +135,6 @@ namespace Hemma.Web.Controllers.Api.v1
                     var next = result[i + 1].GetElement(2).Value;
 
                     if (previous.Equals(current) && current.Equals(next))
-                        result.RemoveAt(i);
-                    else if (current.IsNumeric && current.AsDouble.Equals(0))
                         result.RemoveAt(i);
                     else
                     {
