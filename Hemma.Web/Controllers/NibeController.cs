@@ -15,7 +15,7 @@ namespace Hemma.Web.Controllers
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
             var database = mongoclient.GetDatabase(databaseName);
 
-            var collection = database.GetCollection<object>("Data");
+            var collection = database.GetCollection<object>("LoggedData");
 
             var data = collection.AsQueryable().Take(20).ToList();
 

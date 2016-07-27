@@ -126,8 +126,11 @@ namespace Hemma.Web.Controllers.Api.v1
 
                     if (previous.Equals(current) && current.Equals(next))
                         result.RemoveAt(i);
+                    else if (current.IsNumeric && current.AsDouble.Equals(0))
+                        result.RemoveAt(i);
                     else
                     {
+
                         //if (current.IsNumeric)
                         //{
                         //    var previousNumber = previous.AsDouble;

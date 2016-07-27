@@ -12,53 +12,95 @@
 <div class="row">
     <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
         <div class="btn-group">
-            <label><input type="checkbox" class="dataseries" name="Utetemperatur" value="Utetemperatur" data-db="Nibe" />Utetemperatur</label>
-            <label><input type="checkbox" class="dataseries" name="Viggo" value="Viggo" data-db="Roth" />Viggos rum</label>
-            <label><input type="checkbox" class="dataseries" name="Felix" value="Felix" data-db="Roth" />Felix rum</label>
+            <label><input type="checkbox" class="dataseries" value="Utetemperatur" data-db="Nibe" />Utetemperatur</label>
+            <label><input type="checkbox" class="dataseries" value="Viggo" data-db="Roth" />Viggos rum</label>
+            <label><input type="checkbox" class="dataseries" value="Felix" data-db="Roth" />Felix rum</label>
+            <label><input type="checkbox" class="dataseries" value="Arbetsrum" data-db="Roth" />Arbetsrummet</label>
+            <label><input type="checkbox" class="dataseries" value="ArbetsrumSetting" data-db="Roth" />Arbetsrummet inställning</label>
+            <label><input type="checkbox" class="dataseries" value="Vardagsrum" data-db="Roth" />Vardagsrummet</label>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
+        <div class="btn-group">
+            <a class="settimespan btn btn-default" href="#" data-timespan="3600">60 min</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="86400">24 h</a>
+            <a class="settimespan btn btn-default active" href="#" data-timespan="604800">7 d</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="2592000">30 d</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="7776000">3 mån</a>
+            <a class="settimespan btn btn-default" href="#" data-timespan="15552000">6 mån</a>
         </div>
     </div>
 </div>
 
-@*<div class="row">
-        <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
-            <div class="btn-group">
-                <a class="settime btn btn-default settime-60" href="#" onclick="return setData(60)">60 min</a>
-                <a class="settime btn btn-default settime-1440" href="#" onclick="return setData(1440)">24 h</a>
-                <a class="settime btn btn-default settime-10080" href="#" onclick="return setData(10080)">7 d</a>
-                <a class="settime btn btn-default settime-40320" href="#" onclick="return setData(40320)">28 d</a>
-            </div>
-        </div>
-    </div>
-    <hr />*@
-
 <script src="http://code.highcharts.com/4/highcharts.js"></script>
-<script src="http://code.highcharts.com/4/modules/exporting.js"></script>
+@*<script src="http://code.highcharts.com/4/modules/exporting.js"></script>*@
 <script type="text/javascript">
 
-    $(".dataseries").change(function () {
-        var checkbox = $(this);
-        if ($(this).is(":checked")) {
+    var timespan = 604800;
+
+    $(".settimespan").click(function () {
+        var selected = $(this);
+        var newtimespan = selected.attr("data-timespan");
+        timespan = newtimespan;
+
+        $(".settimespan").removeClass("active");
+        selected.addClass("active");
+
+        var chart = $('#chart-container').highcharts();
+        while (chart.series.length > 0)
+            chart.series[0].remove(true);
+
+        chart.colorCounter = 0;
+
+        $(".dataseries:checked").each(function () {
+            var checkbox = $(this);
             var database = checkbox.attr("data-db");
             var field = checkbox.val();
             addSeries(database, field);
+        });
+
+        return false;
+    });
+
+
+    $(".dataseries").change(function () {
+        var checkbox = $(this);
+        var database = checkbox.attr("data-db");
+        var field = checkbox.val();
+
+        if ($(this).is(":checked")) {
+            addSeries(database, field);
+        }
+        else {
+            var chart = $('#chart-container').highcharts();
+
+            for (var i = 0; i < chart.series.length; i++)
+                if (chart.series[i].options.id == database + "-" + field) {
+                    chart.series[i].remove(true);
+                    chart.colorCounter--;
+                    break;
+                }
+
         }
 
     });
 
-    initializeChart();
-
     var url = '@Url.RouteUrl("DefaultApi", new { httproute = "", controller = "Data",
-              action = "GetTimestampValues", secondOffset= 500000 })';
+              action = "GetTimestampValues" })';
 
     function addSeries(database, field) {
         $.getJSON(url, {
             databaseName: database,
-            field: field
+            field: field,
+            secondOffset: timespan
         }, function (data) {
             var chart = $('#chart-container').highcharts();
             chart.addSeries({
                 name: field,
-                data: data
+                data: data,
+                id: database + "-" + field
             });
         });
     }
@@ -67,13 +109,12 @@
 
         var chartOptions = {
             title: {
-                text: 'Data'
+                text: ''
             },
             chart: {
                 zoomType: $(window).width() < 750 ? 'none ' : 'x',
                 pinchType: 'none'
             },
-            colors: ['#1111ee', '#222222'],
             xAxis: {
                 type: 'datetime',
                 title: {
@@ -83,7 +124,16 @@
         };
         // draw the chart
         $("#chart-container").highcharts(chartOptions);
+
+        var checkbox = $(".dataseries").first()
+        var database = checkbox.attr("data-db");
+        var field = checkbox.val();
+        checkbox.prop('checked', true);
+        addSeries(database, field);
+
     }
+
+    initializeChart();
 
 
 </script>

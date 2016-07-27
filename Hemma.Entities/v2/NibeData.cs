@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,8 @@ namespace Hemma.Entities.v2
 {
     public class NibeData : IData
     {
+        [BsonId]
+        public ObjectId Id { get; set; }
         public DateTime Datestamp { get; set; }
         public long Timestamp { get; set; }
 

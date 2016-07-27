@@ -26,9 +26,10 @@ namespace Hemma.Web.Controllers.Api.v1
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
             var database = mongoclient.GetDatabase("Nibe");
 
-            var collection = database.GetCollection<NibeData>("Data");
+            var collection = database.GetCollection<NibeData>("LoggedData");
 
-            return collection.AsQueryable().OrderByDescending(item => item.Timestamp).FirstOrDefault().Utetemperatur;
+            var last = collection.AsQueryable().OrderByDescending(item => item.Timestamp).Take(20);
+            return last.First().Utetemperatur;
 
         }
 
@@ -39,7 +40,7 @@ namespace Hemma.Web.Controllers.Api.v1
             var mongoclient = new MongoClient(new MongoUrl("mongodb://hemmaserver2"));
             var database = mongoclient.GetDatabase("Nibe");
 
-            var collection = database.GetCollection<NibeData>("Data");
+            var collection = database.GetCollection<NibeData>("LoggedData");
 
             var data = from item in collection.AsQueryable()
                        where item.Timestamp > startDate.Ticks && item.Timestamp < endDate.Ticks
