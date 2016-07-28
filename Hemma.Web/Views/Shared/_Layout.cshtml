@@ -26,8 +26,9 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav">
                         <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Belysning" ? "active" : "")">@Html.ActionLink("Belysning", "Index", "Belysning")</li>
-                        <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Temperatur" && ViewContext.RouteData.Values["action"].ToString() == "Mathias" ? "active" : "")">@Html.ActionLink("Mathias termometer", "Mathias", "Temperatur")</li>
-                        <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Temperatur" && ViewContext.RouteData.Values["action"].ToString() == "Kaj" ? "active" : "")">@Html.ActionLink("Kajs termometer", "Kaj", "Temperatur")</li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Temperatur" && ViewContext.RouteData.Values["id"].ToString().Equals("Mathias", StringComparison.CurrentCultureIgnoreCase) ? "active" : "")">@Html.ActionLink("Mathias termometer", "Index", "Temperatur", new { id = "Mathias" }, null)</li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Temperatur" && ViewContext.RouteData.Values["id"].ToString().Equals("Kaj", StringComparison.CurrentCultureIgnoreCase) ? "active" : "")">@Html.ActionLink("Kajs termometer", "Index", "Temperatur", new { id = "Kaj" }, null)</li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Temperatur" && ViewContext.RouteData.Values["id"].ToString().Equals("Robban", StringComparison.CurrentCultureIgnoreCase) ? "active" : "")">@Html.ActionLink("Robbans termometer", "Index", "Temperatur", new { id = "Robban" }, null)</li>
                         <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "UtomhusTemperatur" ? "active" : "")">@Html.ActionLink("Utomhustemperatur", "Index", "UtomhusTemperatur")</li>
                         <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Analysis" ? "active" : "")">@Html.ActionLink("Alla mätvärden", "Index", "Analysis")</li>
                         @*<li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Nibe" ? "active" : "")">@Html.ActionLink("Värmepump", "Index", "Nibe")</li>*@

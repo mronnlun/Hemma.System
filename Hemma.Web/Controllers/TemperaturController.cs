@@ -9,14 +9,9 @@ namespace Hemma.Web.Controllers
 {
     public class TemperaturController : Controller
     {
-        public ActionResult Mathias()
+        public ActionResult Index(string id)
         {
-            return Temperatur("mathias");
-        }
-
-        public ActionResult Kaj()
-        {
-            return Temperatur("kaj");
+            return Temperatur(id);
         }
 
         ActionResult Temperatur(string id)
