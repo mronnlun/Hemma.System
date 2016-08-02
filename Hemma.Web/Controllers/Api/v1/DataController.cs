@@ -112,9 +112,9 @@ namespace Hemma.Web.Controllers.Api.v1
 
             var find = collection.Find(filter).Project(projection).Sort(sort);
 
-            var result = find.ToList();
+            var results = find.ToList();
 
-            result.RemoveAll(item =>
+            results.RemoveAll(item =>
             {
                 var value = item.GetElement(2).Value;
                 if ((value.IsDouble && value.AsDouble.Equals(0)) || (value.IsInt32 && value.AsInt32.Equals(0)) ||
@@ -124,18 +124,19 @@ namespace Hemma.Web.Controllers.Api.v1
                     return false;
             });
 
+
             if (removeConsecutiveValues)
             {
                 int i = 1;
                 //From second item to next to last
-                while (i < result.Count - 1)
+                while (i < results.Count - 1)
                 {
-                    var previous = result[i - 1].GetElement(2).Value;
-                    var current = result[i].GetElement(2).Value;
-                    var next = result[i + 1].GetElement(2).Value;
+                    var previous = results[i - 1].GetElement(2).Value;
+                    var current = results[i].GetElement(2).Value;
+                    var next = results[i + 1].GetElement(2).Value;
 
                     if (previous.Equals(current) && current.Equals(next))
-                        result.RemoveAt(i);
+                        results.RemoveAt(i);
                     else
                     {
 
@@ -153,7 +154,7 @@ namespace Hemma.Web.Controllers.Api.v1
             }
 
             var selectedItems = new List<List<object>>();
-            foreach (var row in result)
+            foreach (var row in results)
             {
                 var values = new List<object>();
                 foreach (var element in row.Elements)
@@ -167,6 +168,70 @@ namespace Hemma.Web.Controllers.Api.v1
                 }
                 selectedItems.Add(values);
             }
+
+            List<List<object>> deltaValues = null;
+
+            if (field.Equals("Kompressorstarter", StringComparison.CurrentCultureIgnoreCase) ||
+                field.Equals("KompressorDifttid", StringComparison.CurrentCultureIgnoreCase) ||
+                field.Equals("KompressorDrifttidVarmvatten", StringComparison.CurrentCultureIgnoreCase))
+            {
+                var baseDate = new DateTime(1970, 1, 1);
+
+                var serieslength = new DateTime(endTime) - new DateTime(startTime);
+                var groupByHour = serieslength.TotalDays <= 4 ? true : false;
+
+                var hourgroups = selectedItems.GroupBy(item =>
+                {
+                    var milliseconds = (long)item[0];
+                    var time = baseDate.AddMilliseconds(milliseconds);
+                    var date = new DateTime(time.Year, time.Month, time.Day, 0, 0, 0);
+                    if (groupByHour)
+                        date = date.AddHours(time.Hour);
+
+                    return date;
+                });
+
+                var hourvalues = new List<KeyValuePair<DateTime, int>>();
+                foreach (var hourgroup in hourgroups)
+                {
+                    if (hourgroup.ElementAt(0)[1] is int)
+                    {
+                        var maxvalue = hourgroup.Max(item => (int)item[1]);
+                        hourvalues.Add(new KeyValuePair<DateTime, int>(hourgroup.Key, maxvalue));
+                    }
+                    else if (hourgroup.ElementAt(0)[1] is double)
+                    {
+                        var maxvalue = hourgroup.Max(item => (double)item[1]);
+                        hourvalues.Add(new KeyValuePair<DateTime, int>(hourgroup.Key, (int)maxvalue));
+                    }
+                }
+
+                deltaValues = new List<List<object>>();
+                int i = 1;
+                while (i < hourvalues.Count)
+                {
+                    var current = hourvalues[i];
+                    var previous = hourvalues[i - 1];
+
+                    if (current.Value == previous.Value)
+                        hourvalues.RemoveAt(i);
+                    else
+                    {
+                        var values = new List<object>();
+                        var deltavalue = current.Value - previous.Value;
+                        if (deltavalue < 50 && (current.Key - previous.Key).TotalDays < 3) //TODO
+                        {
+                            values.Add((long)current.Key.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds);
+                            values.Add(deltavalue);
+                            deltaValues.Add(values);
+                        }
+                        i++;
+                    }
+                }
+            }
+
+            if (deltaValues != null)
+                selectedItems = deltaValues;
 
             return selectedItems;
         }
@@ -184,7 +249,7 @@ namespace Hemma.Web.Controllers.Api.v1
             else if (value.IsDouble)
                 return value.AsDouble;
             else if (value.IsValidDateTime)
-                return value.ToLocalTime().Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
+                return (long)value.ToLocalTime().Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
             //else if (value.IsObjectId)
             //    itemValue = value.AsObjectId.ToString();
 
