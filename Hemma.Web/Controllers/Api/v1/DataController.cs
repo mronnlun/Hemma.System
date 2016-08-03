@@ -106,7 +106,13 @@ namespace Hemma.Web.Controllers.Api.v1
             var filter = builder.Gte("Timestamp", startTime) & builder.Lte("Timestamp", endTime);
 
             var projection = Builders<BsonDocument>.Projection.Include("Datestamp");
-            projection = projection.Include(field);
+            if (field.Equals("KompressorDrifttidVarme", StringComparison.CurrentCultureIgnoreCase))
+            {
+                projection = projection.Include("KompressorDifttid");
+                projection = projection.Include("KompressorDrifttidVarmvatten");
+            }
+            else
+                projection = projection.Include(field);
 
             var sort = Builders<BsonDocument>.Sort.Ascending("Timestamp");
 
@@ -114,46 +120,7 @@ namespace Hemma.Web.Controllers.Api.v1
 
             var results = find.ToList();
 
-            results.RemoveAll(item =>
-            {
-                var value = item.GetElement(2).Value;
-                if ((value.IsDouble && value.AsDouble.Equals(0)) || (value.IsInt32 && value.AsInt32.Equals(0)) ||
-                (value.IsInt64 && value.AsInt64.Equals(0)))
-                    return true;
-                else
-                    return false;
-            });
-
-
-            if (removeConsecutiveValues)
-            {
-                int i = 1;
-                //From second item to next to last
-                while (i < results.Count - 1)
-                {
-                    var previous = results[i - 1].GetElement(2).Value;
-                    var current = results[i].GetElement(2).Value;
-                    var next = results[i + 1].GetElement(2).Value;
-
-                    if (previous.Equals(current) && current.Equals(next))
-                        results.RemoveAt(i);
-                    else
-                    {
-
-                        //if (current.IsNumeric)
-                        //{
-                        //    var previousNumber = previous.AsDouble;
-                        //    var currentNumber = current.AsDouble;
-                        //    var nextNumber = next.AsDouble;
-
-                        //    if ()
-                        //}
-                        i++;
-                    }
-                }
-            }
-
-            var selectedItems = new List<List<object>>();
+            var valueItems = new List<List<object>>();
             foreach (var row in results)
             {
                 var values = new List<object>();
@@ -166,21 +133,62 @@ namespace Hemma.Web.Controllers.Api.v1
                         values.Add(itemValue);
                     }
                 }
-                selectedItems.Add(values);
+                valueItems.Add(values);
+            }
+
+            if (field.Equals("KompressorDrifttidVarme", StringComparison.CurrentCultureIgnoreCase))
+            {
+                foreach (var valueItem in valueItems)
+                {
+                    var drifttid = (double)valueItem[1];
+                    var drifttidVatten = (double)valueItem[2];
+                    var drifttidVarme = drifttid - drifttidVatten;
+                    valueItem.RemoveAt(2);
+                    valueItem[1] = drifttidVarme;
+                }
+            }
+
+            valueItems.RemoveAll(row =>
+            {
+                var value = row[1];
+                if ((value is double && ((double)value).Equals(0)) || (value is int && (int)value == 0) ||
+                (value is long && (long)value == 0))
+                    return true;
+                else
+                    return false;
+            });
+
+
+            if (removeConsecutiveValues)
+            {
+                int i = 1;
+                //From second item to next to last
+                while (i < valueItems.Count - 1)
+                {
+                    var previous = valueItems[i - 1][1];
+                    var current = valueItems[i][1];
+                    var next = valueItems[i + 1][1];
+
+                    if (previous.Equals(current) && current.Equals(next))
+                        valueItems.RemoveAt(i);
+                    else
+                        i++;
+                }
             }
 
             List<List<object>> deltaValues = null;
 
             if (field.Equals("Kompressorstarter", StringComparison.CurrentCultureIgnoreCase) ||
                 field.Equals("KompressorDifttid", StringComparison.CurrentCultureIgnoreCase) ||
-                field.Equals("KompressorDrifttidVarmvatten", StringComparison.CurrentCultureIgnoreCase))
+                field.Equals("KompressorDrifttidVarmvatten", StringComparison.CurrentCultureIgnoreCase) ||
+                field.Equals("KompressorDrifttidVarme", StringComparison.CurrentCultureIgnoreCase))
             {
                 var baseDate = new DateTime(1970, 1, 1);
 
                 var serieslength = new DateTime(endTime) - new DateTime(startTime);
                 var groupByHour = serieslength.TotalDays <= 4 ? true : false;
 
-                var hourgroups = selectedItems.GroupBy(item =>
+                var hourgroups = valueItems.GroupBy(item =>
                 {
                     var milliseconds = (long)item[0];
                     var time = baseDate.AddMilliseconds(milliseconds);
@@ -231,9 +239,9 @@ namespace Hemma.Web.Controllers.Api.v1
             }
 
             if (deltaValues != null)
-                selectedItems = deltaValues;
+                valueItems = deltaValues;
 
-            return selectedItems;
+            return valueItems;
         }
 
         private object GetValue(BsonValue value)
