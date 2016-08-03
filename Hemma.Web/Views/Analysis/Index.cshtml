@@ -78,6 +78,7 @@
             chart.series[0].remove(true);
 
         chart.colorCounter = 0;
+        chart.symbolCounter = 0;
 
         $(".dataseries:checked").each(function () {
             var checkbox = $(this);
@@ -85,8 +86,9 @@
             var field = checkbox.val();
             var removeConsecutiveValues = checkbox.attr("data-removeConsecutiveValues");
             var plottype = checkbox.attr("data-plottype");
+            var name = checkbox.parent().text();
 
-            addSeries(database, field, removeConsecutiveValues, plottype);
+            addSeries(database, field, removeConsecutiveValues, plottype, name);
         });
 
         return false;
@@ -101,7 +103,8 @@
         if ($(this).is(":checked")) {
             var removeConsecutiveValues = checkbox.attr("data-removeConsecutiveValues");
             var plottype = checkbox.attr("data-plottype");
-            addSeries(database, field, removeConsecutiveValues, plottype);
+            var name = checkbox.parent().text();
+            addSeries(database, field, removeConsecutiveValues, plottype, name);
         }
         else {
             var chart = $('#chart-container').highcharts();
@@ -110,6 +113,7 @@
                 if (chart.series[i].options.id == database + "-" + field) {
                     chart.series[i].remove(true);
                     chart.colorCounter--;
+                    chart.symbolCounter--;
                     break;
                 }
 
@@ -120,11 +124,14 @@
     var url = '@Url.RouteUrl("DefaultApi", new { httproute = "", controller = "Data",
               action = "GetTimestampValues" })';
 
-    function addSeries(database, field, removeConsecutiveValues, plotType) {
+    function addSeries(database, field, removeConsecutiveValues, plotType, name) {
         if (typeof removeConsecutiveValues === "undefined")
             removeConsecutiveValues = true;
         if (typeof plotType === "undefined")
             plotType = "spline";
+
+        if (typeof name === "undefined")
+            name = field;
 
         $.getJSON(url, {
             databaseName: database,
@@ -134,7 +141,7 @@
         }, function (data) {
             var chart = $('#chart-container').highcharts();
             chart.addSeries({
-                name: field,
+                name: name,
                 data: data,
                 type: plotType,
                 id: database + "-" + field
