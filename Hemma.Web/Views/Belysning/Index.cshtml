@@ -22,13 +22,14 @@
             <h2>@settingGroup.Key</h2>
             @foreach (var setting in settingGroup)
             {
-            <div class="light" data-room="@setting.Room" data-lampa="@setting.Lampa">
-                <h3>@setting.Lampa</h3>
-                <div class="btn-group">
-                    <button class="changeLighting btn btn-default button-on" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="on">På</button>
-                    <button class="changeLighting btn btn-default button-off" data-room="@setting.Room" data-lampa="@setting.Lampa" data-state="off">Av</button>
+                <div class="light" data-room="@setting.RoomNormalized" data-lampa="@setting.LampaNormalized">
+                    <h3>@setting.Lampa</h3>
+                    <div class="btn-group" style="vertical-align:central">
+                        <button class="changeLighting btn btn-default button-on" data-room="@setting.RoomNormalized" data-lampa="@setting.LampaNormalized" data-state="on">På</button>
+                        <button class="changeLighting btn btn-default button-off" data-room="@setting.RoomNormalized" data-lampa="@setting.LampaNormalized" data-state="off">Av</button>
+                        <img class="belysning-loader" id="belysning-loader-@setting.RoomNormalized-@setting.LampaNormalized" src="~/Images/belysning-loader.gif" style="display:none;" />
+                    </div>
                 </div>
-            </div>
             }
         </div>
     </div>
@@ -37,14 +38,17 @@
     function setLightButtonStatus(data) {
         $(".changeLighting[data-room='" + data.room + "'][data-lampa='" + data.lampa + "']").removeClass('active');;
         $(".changeLighting[data-room='" + data.room + "'][data-lampa='" + data.lampa + "'][data-state='" + data.state + "']").addClass('active');
-
+        $("#belysning-loader-" + data.room + "-" + data.lampa).hide();
     }
     $(function () {
         $.get("@Url.Action("UpdateLightStatus")");
 
         $(".light").each(function (index, value) {
-            var roomValue = $(value).attr('data-room');
-            var lampaValue = $(value).attr('data-lampa');
+            var lightgroup = $(value);
+            var roomValue = lightgroup.attr('data-room');
+            var lampaValue = lightgroup.attr('data-lampa');
+            var loader = lightgroup.find(".belysning-loader");
+            loader.show();
 
             $.get('@Url.Action("GetLightStatus")', {
                 room: roomValue,

@@ -1,11 +1,13 @@
 ﻿using Hemma.Web.Models;
 using KNXLib;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
@@ -45,6 +47,33 @@ namespace Hemma.Web.Controllers
 
         private static readonly object knxLock = new object();
 
+        static ConcurrentStack<int> generatedRandoms = new ConcurrentStack<int>();
+        private static readonly object randomLock = new object();
+
+        static int GetNextRandom()
+        {
+            int number;
+            if (generatedRandoms.TryPop(out number))
+                return number;
+            else
+            {
+                lock (randomLock)
+                {
+                    //Check again so no other thread has generated number already
+                    if (generatedRandoms.TryPop(out number))
+                        return number;
+
+                    var rnd = new Random();
+                    for (int i = 0; i < 500; i++)
+                    {
+                        generatedRandoms.Push(rnd.Next(1500, 5000));
+                    }
+
+                    return rnd.Next(1500, 5000);
+                }
+            }
+        }
+
         [Authorize]
         [HttpGet]
         public void UpdateLightStatus()
@@ -56,7 +85,7 @@ namespace Hemma.Web.Controllers
             lock (knxLock)
             {
                 var localAddress = ConfigurationManager.AppSettings["localAddress"];
-                var localPort = new Random().Next(1500, 5000);
+                var localPort = GetNextRandom();
                 var remoteAddress = ConfigurationManager.AppSettings["remoteAddress"];
                 var remotePort = int.Parse(ConfigurationManager.AppSettings["remotePort"]);
 
@@ -85,6 +114,10 @@ namespace Hemma.Web.Controllers
                             Wait(1000);
                     }
                 }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine("ERROR: " + ex.ToString());
+                }
                 finally
                 {
                     if (connection != null)
@@ -105,10 +138,10 @@ namespace Hemma.Web.Controllers
             //}
         }
 
-        private void ReceiveKnxStatus(string address, byte[] state)
+        private void ReceiveKnxStatus(string address, string state)
         {
             Debug.WriteLine("ReceiveKnxStatus: " + address);
-            if (state != null && state.Length > 0 && state[0] == 1)
+            if (state != null && (int)state[0] > 0)
                 HttpContext.Application["LightStatus_" + address] = "on";
             else
                 HttpContext.Application["LightStatus_" + address] = "off";
@@ -120,8 +153,8 @@ namespace Hemma.Web.Controllers
         {
             Debug.WriteLine(room + " " + lampa);
 
-            var setting = GetSettings().FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
-                item.Lampa.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
+            var setting = GetSettings().FirstOrDefault(item => item.RoomNormalized.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
+                item.LampaNormalized.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
 
             string state = null;
             if (setting != null)
@@ -157,15 +190,15 @@ namespace Hemma.Web.Controllers
         [HttpPost]
         public JsonResult Ändra(string room, string lampa, string state)
         {
-            var setting = GetSettings().FirstOrDefault(item => item.Room.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
-                item.Lampa.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
+            var setting = GetSettings().FirstOrDefault(item => item.RoomNormalized.Equals(room, StringComparison.CurrentCultureIgnoreCase) &&
+                item.LampaNormalized.Equals(lampa, StringComparison.CurrentCultureIgnoreCase));
             if (setting != null)
             {
                 lock (knxLock)
                 {
 
                     var localAddress = ConfigurationManager.AppSettings["localAddress"];
-                    var localPort = new Random().Next(1500, 5000);
+                    var localPort = GetNextRandom();
                     var remoteAddress = ConfigurationManager.AppSettings["remoteAddress"];
                     var remotePort = int.Parse(ConfigurationManager.AppSettings["remotePort"]);
 
@@ -214,14 +247,14 @@ namespace Hemma.Web.Controllers
             Console.WriteLine("Connected");
         }
 
-        private static void KnxStatusEvent(string address, byte[] state)
+        private static void KnxStatusEvent(string address, string state)
         {
-            Console.WriteLine("New Status Event: device " + address + " has status " + string.Join(",", state.Select(item => item.ToString())));
+            Console.WriteLine("New Status Event: device " + address + " has status " + state);
         }
 
-        private static void KnxEvent(string address, byte[] state)
+        private static void KnxEvent(string address, string state)
         {
-            Console.WriteLine("New Event: device " + address + " has status " + string.Join(",", state.Select(item => item.ToString())));
+            Console.WriteLine("New Event: device " + address + " has status " + state);
         }
     }
 }

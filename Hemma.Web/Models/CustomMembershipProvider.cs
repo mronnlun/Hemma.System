@@ -184,8 +184,14 @@ namespace Hemma.Web.Models
                 return false;
 
             var registryContainer = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Nanocon\\");
-            var correctusername = registryContainer.GetValue("HemmaUsername")?.ToString();
-            var correctpassword = registryContainer.GetValue("HemmaPassword")?.ToString();
+            var correctusername = registryContainer?.GetValue("HemmaUsername")?.ToString();
+            var correctpassword = registryContainer?.GetValue("HemmaPassword")?.ToString();
+
+            if (string.IsNullOrWhiteSpace(correctusername) && string.IsNullOrWhiteSpace(correctpassword))
+            {
+                correctusername = "dev";
+                correctpassword = "pass";
+            }
 
             if (username.Equals(correctusername, StringComparison.CurrentCultureIgnoreCase) &&
                 password.Equals(correctpassword, StringComparison.CurrentCultureIgnoreCase))

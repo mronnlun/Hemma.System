@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="Images\belysning-loader.gif" />
     <Content Include="Scripts\Utilities.js" />
     <Content Include="Scripts\Thingspeak.js" />
     <Content Include="Web.config" />
@@ -177,7 +178,7 @@
     <Folder Include="Views\Utomhus\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CumpsD\knx.net\src\KNXLib\KNXLib.csproj">
+    <ProjectReference Include="..\..\lifeemotions\knx.net\src\KNXLib\KNXLib.csproj">
       <Project>{cd1911ad-1967-40cb-a1c3-ec2fa562872b}</Project>
       <Name>KNXLib</Name>
     </ProjectReference>
