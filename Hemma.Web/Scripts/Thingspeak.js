@@ -69,7 +69,7 @@ var thingSpeak = (function () {
         config: config,
 
         getLatestData: function (successAction) {
-            $.getJSON("http://api.thingspeak.com/channels/" + this.config.channelId +
+            $.getJSON("https://api.thingspeak.com/channels/" + this.config.channelId +
                 "/feeds/last.json?api_key=" + this.config.apiReadKey, function (data) {
                     if (successAction)
                         successAction(data);
