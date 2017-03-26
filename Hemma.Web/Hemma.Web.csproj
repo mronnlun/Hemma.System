@@ -118,6 +118,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Alexa\AlexaSmartHomeSkillAdapter-HemmaBelysning.js" />
     <Content Include="Global.asax" />
     <Content Include="Images\belysning-loader.gif" />
     <Content Include="Scripts\Utilities.js" />
@@ -136,6 +137,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AnalysisController.cs" />
     <Compile Include="Controllers\Api\ArrayInputAttribute.cs" />
+    <Compile Include="Controllers\Api\v1\AlexaBelysningController.cs" />
     <Compile Include="Controllers\Api\v1\DataController.cs" />
     <Compile Include="Controllers\BelysningController.cs" />
     <Compile Include="Controllers\InomhusController.cs" />

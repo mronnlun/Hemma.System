@@ -45,12 +45,12 @@ namespace Hemma.Web.Controllers
         }
 
 
-        private static readonly object knxLock = new object();
+        public static readonly object knxLock = new object();
 
         static ConcurrentStack<int> generatedRandoms = new ConcurrentStack<int>();
         private static readonly object randomLock = new object();
 
-        static int GetNextRandom()
+        public static int GetNextRandom()
         {
             int number;
             if (generatedRandoms.TryPop(out number))
