@@ -18,6 +18,8 @@ namespace Hemma.Web.Models
         public string Room { get; set; }
         public string Lampa { get; set; }
 
+        public string AlexaName { get; set; }
+
         static string replace = "å,a;ä,a;ö,o;Å,A;Ä,A;Ö,O; ,_;(,_;),_";
 
         static Dictionary<string, string> replaceList = GetReplaceDictionary();
