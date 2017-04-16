@@ -27,7 +27,10 @@
                     <div class="btn-group" style="vertical-align:central">
                         <button class="changeLighting btn btn-default button-on" data-room="@setting.RoomNormalized" data-lampa="@setting.LampaNormalized" data-state="on">På</button>
                         <button class="changeLighting btn btn-default button-off" data-room="@setting.RoomNormalized" data-lampa="@setting.LampaNormalized" data-state="off">Av</button>
-                        <img class="belysning-loader" id="belysning-loader-@setting.RoomNormalized-@setting.LampaNormalized" src="~/Images/belysning-loader.gif" style="display:none;" />
+                        @if (!setting.DontCheckStatus)
+                        {
+                            <img class="belysning-loader" id="belysning-loader-@setting.RoomNormalized-@setting.LampaNormalized" src="~/Images/belysning-loader.gif" style="display:none;" />
+                        }
                     </div>
                 </div>
             }

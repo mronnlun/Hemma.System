@@ -98,6 +98,9 @@ namespace Hemma.Web.Controllers
                     var settings = GetSettings();
                     foreach (var setting in settings)
                     {
+                        if (setting.DontCheckStatus)
+                            continue;
+
                         connection.RequestStatus(setting.StatusAddress);
                         Wait(100);
                     }
