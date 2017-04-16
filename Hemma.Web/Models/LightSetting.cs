@@ -20,6 +20,8 @@ namespace Hemma.Web.Models
 
         public string AlexaName { get; set; }
 
+        public bool DontCheckStatus { get; set; }
+
         static string replace = "å,a;ä,a;ö,o;Å,A;Ä,A;Ö,O; ,_;(,_;),_";
 
         static Dictionary<string, string> replaceList = GetReplaceDictionary();
