@@ -106,7 +106,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\lifeemotions\knx.net\src\KNXLib\KNXLib.csproj">
+    <ProjectReference Include="..\..\knx.net\src\KNXLib\KNXLib.csproj">
       <Project>{cd1911ad-1967-40cb-a1c3-ec2fa562872b}</Project>
       <Name>KNXLib</Name>
     </ProjectReference>
