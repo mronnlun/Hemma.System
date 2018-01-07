@@ -57,10 +57,10 @@ var thingSpeak = (function () {
             else
                 getDataInternal(addSeconds(endTime, 1), successAction, failureAction, previousData, false);
         })
-        .error(function () {
-            if (failureAction)
-                failureAction();
-        });
+            .error(function () {
+                if (failureAction)
+                    failureAction();
+            });
 
     };
 
@@ -116,6 +116,41 @@ var thingSpeak = (function () {
             return avg;
         },
 
+        valueIsAnomaly: function (values, index, fieldName) {
+            if (index == 0 || index == values.length - 1)
+                return false;
+
+            var currentValue = parseFloat(values[index][fieldName]);
+            var prevValue = -1000;
+            prevIndex = index - 1;
+            while (prevValue == -1000 && prevIndex >= 0) {
+                prevValue = parseFloat(values[prevIndex][fieldName]);
+                if (isNaN(prevValue)) {
+                    prevValue = -1000;
+                    prevIndex--;
+                }
+            }
+
+            if (prevValue == -1000)
+                return false;
+
+            var nextValue = parseFloat(values[index + 1][fieldName]);
+
+            var distanceBetweenNeighbours = Math.abs(nextValue - prevValue);
+            if (distanceBetweenNeighbours > 5)
+                //Cannot determine anomaly
+                return false;
+
+            var neighbourAverage = (nextValue + prevValue) / 2;
+
+            if (Math.abs(currentValue - neighbourAverage) > 5) {
+                console.log("Removed anomaly " + currentValue + " between values " + prevValue + " and " + nextValue);
+                return true;
+            }
+
+            return false;
+        },
+
         valueSameAsNeighbours: function (values, index, fieldName) {
 
             //Check if current value is the same as previous and next
@@ -160,17 +195,17 @@ var thingSpeak = (function () {
 
                     var fieldName = "field" + fieldNumber;
 
-                    if (!this.valueSameAsNeighbours(data.feeds, index, fieldName)) {
+                    if (this.valueIsAnomaly(data.feeds, index, fieldName)) {
+
+                    }
+                    else if (this.valueSameAsNeighbours(data.feeds, index, fieldName)) {
+                    }
+                    else {
                         var value = parseFloat(dataPoint[fieldName]);
                         if (!isNaN(value)) {
-                            if (filterByAverage) {
-                                var avg = this.getAverage(data.feeds, index, fieldName, 2, value);
-                                if (Math.abs(value - avg) < 30)
-                                    formattedData[fieldName].push([pointDate, value]);
-                            }
-                            else
-                                formattedData[fieldName].push([pointDate, value]);
+                            formattedData[fieldName].push([pointDate, value]);
                         }
+
                     }
                 }
             }
