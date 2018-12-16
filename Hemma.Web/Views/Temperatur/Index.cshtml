@@ -32,6 +32,7 @@
 <div class="row">
     <div class="col-xs-offset-1 col-md-offset-1 col-lg-offset-1 col-xs-11 col-md-11 col-lg-11">
         <a class="showrawdata btn btn-default" href="#" onclick="return showRawData()">Visa all data</a>
+        <a id="downloadrawdata" class="btn btn-default" href="#" onclick="downloadRawData()">Ladda ner Excel</a>
         <div id="rawdata">
         </div>
     </div>
@@ -162,12 +163,46 @@
         $("#chart-container").html('Invalid Channel.');
     }
 
+    function downloadRawData() {
+        $("#downloadrawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
+
+        var startTime = getTimeFromMinutes(60 * 24);
+
+        thingSpeak.getData(startTime,
+            function (data) {
+
+                var csvdata = "Datum,Temperatur\n\r";
+                for (var i = 0; i < data.feeds; i++){
+                    csvdata += data.feeds[i].created_at + "," + data.feeds[i].field1 + "\n\r";
+                }
+
+                var blob = new Blob([csvdata], { type: 'text/csv' });
+                if (window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveBlob(blob, filename);
+                }
+                else {
+                    var elem = window.document.createElement('a');
+                    elem.href = window.URL.createObjectURL(blob);
+                    elem.download = "temperatur.xlsx";
+                    document.body.appendChild(elem);
+                    elem.click();
+                    document.body.removeChild(elem);
+                }
+            },
+            function () {
+
+            });
+
+        return false;
+
+    }
+
     function showRawData() {
         $("#rawdata").empty();
         $("#rawdata").append('<img src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.5.8/ajax-loader.gif" />')
-        
+
         var startTime = getTimeFromMinutes(60 * 24 * 180);
-        
+
         thingSpeak.getData(startTime,
             function (data) {
                 $("#rawdata").empty();
