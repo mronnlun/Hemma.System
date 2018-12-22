@@ -15,7 +15,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hemma.Web</RootNamespace>
     <AssemblyName>Hemma.Web</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -139,6 +139,7 @@
     <Compile Include="Controllers\AnalysisController.cs" />
     <Compile Include="Controllers\Api\ArrayInputAttribute.cs" />
     <Compile Include="Controllers\Api\v1\AlexaBelysningController.cs" />
+    <Compile Include="Controllers\Api\v1\HomebridgeLightingController.cs" />
     <Compile Include="Controllers\Api\v1\DataController.cs" />
     <Compile Include="Controllers\BelysningController.cs" />
     <Compile Include="Controllers\InomhusController.cs" />
