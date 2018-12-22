@@ -48,10 +48,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>6CA1235C3B1BAD270175C7F8CA5622CAC2DAC0B0</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>930105B5BED9094053B9A9046721036ADA0E3FAD</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>KnxMonitorService_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>KnxMonitorService_1_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="KnxMonitorService_1_TemporaryKey.pfx" />
     <None Include="KnxMonitorService_TemporaryKey.pfx" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
