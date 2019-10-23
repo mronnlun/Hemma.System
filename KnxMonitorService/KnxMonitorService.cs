@@ -3,6 +3,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -87,10 +88,10 @@ namespace KnxMonitorService
 
         private void ChangeLight(int lightId, string action)
         {
-            const string consumerKey = "FEHUVEW84RAFR5SP22RABURUPHAFRUNU";
-            const string consumerSecret = "ZUXEVEGA9USTAZEWRETHAQUBUR69U6EF";
-            const string token = "f212fc0afc552a2a384ff98cff7283b105866a56a";
-            const string tokenSecret = "cb6ae27cbcbcc79d5d6809c367ec3b4a";
+            string consumerKey = ConfigurationManager.AppSettings["TelldusConsumerKey"];
+            string consumerSecret = ConfigurationManager.AppSettings["TelldusConsumerSecret"];
+            string token = ConfigurationManager.AppSettings["TelldusToken"];
+            string tokenSecret = ConfigurationManager.AppSettings["TelldusTokenSecret"];
 
             var now = Math.Floor(DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds);
             string nonce = DateTime.Now.Ticks.ToString();
