@@ -73,6 +73,7 @@ namespace KnxMonitorService
             {
                 var arbetsrumBordslampaId = 1487762;
                 var vardagsrumSkänkLampaId = 1487766;
+                var laminoLampaId = 3531075;
 
                 var action = "On";
                 if (((int)state[0]) == 0)
@@ -80,6 +81,7 @@ namespace KnxMonitorService
 
                 ChangeLight(arbetsrumBordslampaId, action);
                 ChangeLight(vardagsrumSkänkLampaId, action);
+                ChangeLight(laminoLampaId, action);
             }
         }
 
