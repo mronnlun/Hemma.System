@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hemma.Web", "Hemma.Web\Hemma.Web.csproj", "{74447118-7209-4962-8867-404129D28988}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KNXLib", "..\knx.net\src\KNXLib\KNXLib.csproj", "{CD1911AD-1967-40CB-A1C3-EC2FA562872B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnxMonitorService", "KnxMonitorService\KnxMonitorService.csproj", "{6982B7B4-2A1E-4DED-A3CC-0DCC55751796}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hemma.TelldusLogger", "Hemma.TelldusLogger\Hemma.TelldusLogger.csproj", "{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,8 +47,15 @@ Global
 		{6982B7B4-2A1E-4DED-A3CC-0DCC55751796}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6982B7B4-2A1E-4DED-A3CC-0DCC55751796}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6982B7B4-2A1E-4DED-A3CC-0DCC55751796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E5F81125-A005-4125-A20D-03814B2C878C}
 	EndGlobalSection
 EndGlobal
