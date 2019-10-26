@@ -31,11 +31,6 @@ namespace Hemma.TelldusLogger
             string token = this.configuration["TelldusToken"];
             string tokenSecret = this.configuration["TelldusTokenSecret"];
 
-            consumerKey = "FEHUVEW84RAFR5SP22RABURUPHAFRUNU";
-            consumerSecret = "ZUXEVEGA9USTAZEWRETHAQUBUR69U6EF";
-            token = "f212fc0afc552a2a384ff98cff7283b105866a56a";
-            tokenSecret = "cb6ae27cbcbcc79d5d6809c367ec3b4a";
-
             var now = Math.Floor(DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds);
             string nonce = DateTime.Now.Ticks.ToString();
             string authoriationHeader = "oauth_timestamp=\"" + now + "\", oauth_version=\"1.0\", oauth_signature_method=\"PLAINTEXT\", oauth_consumer_key=\"" + consumerKey
