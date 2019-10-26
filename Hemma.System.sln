@@ -15,9 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KNXLib", "..\knx.net\src\KN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnxMonitorService", "KnxMonitorService\KnxMonitorService.csproj", "{6982B7B4-2A1E-4DED-A3CC-0DCC55751796}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnxMonitorService", "KnxMonitorService\KnxMonitorService.csproj", "{6982B7B4-2A1E-4DED-A3CC-0DCC55751796}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hemma.TelldusLogger", "Hemma.TelldusLogger\Hemma.TelldusLogger.csproj", "{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hemma.TelldusLogger", "Hemma.TelldusLogger\Hemma.TelldusLogger.csproj", "{23C33F10-01A4-49A5-BAC5-92CA21A21BF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
