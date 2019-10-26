@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace Hemma.TelldusLogger
 {
-    public interface IDataFetcher
+    public interface ITelldusDataFetcher
     {
         Task<string> GetDatapoint(string sensorid);
     }
-    public class DataFetcher : IDataFetcher
+    public class TelldusDataFetcher : ITelldusDataFetcher
     {
         private readonly IConfiguration configuration;
         private readonly IHttpClientFactory httpClientFactory;
 
-        public DataFetcher(IConfiguration configuration,
+        public TelldusDataFetcher(IConfiguration configuration,
             IHttpClientFactory httpClientFactory)
         {
             this.configuration = configuration;
@@ -30,6 +30,11 @@ namespace Hemma.TelldusLogger
             string consumerSecret = this.configuration["TelldusConsumerSecret"];
             string token = this.configuration["TelldusToken"];
             string tokenSecret = this.configuration["TelldusTokenSecret"];
+
+            consumerKey = "FEHUVEW84RAFR5SP22RABURUPHAFRUNU";
+            consumerSecret = "ZUXEVEGA9USTAZEWRETHAQUBUR69U6EF";
+            token = "f212fc0afc552a2a384ff98cff7283b105866a56a";
+            tokenSecret = "cb6ae27cbcbcc79d5d6809c367ec3b4a";
 
             var now = Math.Floor(DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds);
             string nonce = DateTime.Now.Ticks.ToString();

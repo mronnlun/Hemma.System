@@ -28,7 +28,7 @@ namespace Hemma.TelldusLogger
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(config);
             services.AddTransient<ITelldusLogger, TelldusLogger>();
-            services.AddTransient<IDataFetcher, DataFetcher>();
+            services.AddTransient<ITelldusDataFetcher, TelldusDataFetcher>();
             services.AddTransient<ITelldusTemperatureFactory, TelldusTemperatureFactory>();
             services.AddTransient<ITelldusRepository, TelldusRepository>();
             services.AddHttpClient();

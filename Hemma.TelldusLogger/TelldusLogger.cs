@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Hemma.TelldusLogger
 {
@@ -9,11 +10,11 @@ namespace Hemma.TelldusLogger
 
     public class TelldusLogger : ITelldusLogger
     {
-        private readonly IDataFetcher dataFetcher;
+        private readonly ITelldusDataFetcher dataFetcher;
         private readonly ITelldusTemperatureFactory telldusTemperatureFactory;
         private readonly ITelldusRepository telldusRepository;
 
-        public TelldusLogger(IDataFetcher dataFetcher,
+        public TelldusLogger(ITelldusDataFetcher dataFetcher,
             ITelldusTemperatureFactory telldusTemperatureFactory,
             ITelldusRepository telldusRepository)
         {
@@ -25,7 +26,9 @@ namespace Hemma.TelldusLogger
         {
             var data = await this.dataFetcher.GetDatapoint("1530753086");
             var datapoint = this.telldusTemperatureFactory.Create(data);
-            this.telldusRepository.Save(datapoint);
+            await this.telldusRepository.Save(datapoint);
+
+            Console.WriteLine("Saved datapoint");
         }
     }
 }

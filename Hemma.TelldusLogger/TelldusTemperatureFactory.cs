@@ -29,7 +29,11 @@ namespace Hemma.TelldusLogger
 
             var datapoint = new TelldusTemperatureDatapoint();
             datapoint.Name = message.Name;
-            datapoint.Timestamp = localTimestamp;
+            datapoint.Battery = int.Parse(message.Battery);
+
+            datapoint.Timestamp = localTimestamp.Ticks;
+            datapoint.Datestamp = localTimestamp;
+
             datapoint.Temperature = double.Parse(temperature.Value.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture);
             datapoint.Humidity = double.Parse(humidity.Value.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture);
 
